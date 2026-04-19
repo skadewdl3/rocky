@@ -9,5 +9,5 @@
   - *Weekly syncs.* 45-60 min. Demo progress, unblock each other, assign new issues.
   - *No gatekeeping.* Open PRs early. Reviews are collaborative, not adversarial.
 
-  - *AI Usage*: You're welcome to use AI, but remember that the goal is to learn. Don't be afraid to fail or struggle - that's often how you'll learn something new! If you do use AI, just make sure you can demo and explain every piece of your code.
+  - *AI Usage*: You're welcome to use AI, but remember that the goal is to learn. *Always prefer Googling, reading documentation, and asking questions in Discord first.* Turning to AI first defeats the purpose of the initiative! Don't be afraid to struggle - that's often how you'll learn something new. If you do use AI, make sure you can explain every single line of your code.
 ]
