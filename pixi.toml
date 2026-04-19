@@ -6,7 +6,7 @@ platforms = ["linux-64"]
 version = "0.1.0"
 
 [tasks]
-typst = "mkdir -p slides && bash -c 'for f in src/*/main.typ; do session=$(basename $(dirname $f)); typst compile $f \"slides/$session.pdf\"; done'"
+typst = "mkdir -p slides && bash -c 'for f in src/*/main.typ; do session=$(basename $(dirname $f)); typst compile --font-path fonts $f \"slides/$session.pdf\"; done'"
 watch = "mkdir -p slides && bash -c 'session=${1:-session-1}; typst watch src/$session/main.typ slides/$session.pdf'"
 
 [dependencies]

@@ -1,16 +1,40 @@
-#import "@preview/touying:0.7.1": *
-#import themes.simple: *
+#import "@preview/touying:0.6.1": *
+#import "@preview/metropolyst:0.1.0": *
+#import "@preview/codly:1.3.0": *
 
-#show: simple-theme.with(aspect-ratio: "16-9")
+// Configure metropolyst theme
+#show: metropolyst-theme.with(
+  config-info(
+    title: [Building an Interpreter (to make Pong)],
+    subtitle: [Community Kickoff],
+    author: [Soham Karandikar],
+    date: datetime.today(),
+  ),
+  font: "Fira Sans",
+)
 
-= Title
+// Configure codly for syntax highlighting in code blocks
+#show: codly-init.with()
 
-== First Slide
+#codly(number-format: none, zebra-fill: none)
 
-Hello, Touying!
+// Set global text properties including font
+#set text(font: "Fira Sans", weight: "light", size: 20pt)
 
-#pause
-
-Hello, Typst!
-
-#include "test.typ"
+#include "01-welcome.typ"
+#include "02-welcome.typ"
+#include "03-welcome.typ"
+#include "04-how-we-work.typ"
+#include "05-how-we-work.typ"
+#include "06-how-we-work.typ"
+#include "07-how-we-work.typ"
+#include "08-the-project.typ"
+#include "09-the-project.typ"
+#include "10-the-project.typ"
+#include "12-dev-setup.typ"
+#include "13-dev-setup.typ"
+#include "14-dev-setup.typ"
+#include "15-dev-setup.typ"
+#include "16-issues.typ"
+#include "17-issues.typ"
+#include "18-issues.typ"
