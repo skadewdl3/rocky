@@ -1,0 +1,13 @@
+[workspace]
+authors = ["Soham Karandikar <sohamk10@gmail.com>"]
+channels = ["conda-forge"]
+name = "rocky-slides"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+typst = "mkdir -p slides && bash -c 'for f in src/*/main.typ; do session=$(basename $(dirname $f)); typst compile $f \"slides/$session.pdf\"; done'"
+watch = "mkdir -p slides && bash -c 'session=${1:-session-1}; typst watch src/$session/main.typ slides/$session.pdf'"
+
+[dependencies]
+typst = ">=0.14.2,<0.15"
