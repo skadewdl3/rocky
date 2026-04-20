@@ -5,13 +5,12 @@ name = "rocky-slides"
 platforms = ["linux-64", "win-64"]
 version = "0.1.0"
 
-[target.linux-64.tasks]
-typst = "mkdir -p slides && bash -c 'for f in src/*/main.typ; do session=$(basename $(dirname $f)); typst compile --font-path fonts $f \"slides/$session.pdf\"; done'"
-watch = "mkdir -p slides && bash -c 'session=${1:-session-1}; typst watch src/$session/main.typ slides/$session.pdf'"
-
-[target.win-64.tasks]
-typst = 'cmd /c "mkdir slides 2>nul & for /d %d in (src\*) do typst compile --font-path fonts %d\main.typ slides/%~nxd.pdf"'
-watch = 'cmd /c "mkdir slides 2>nul & if "%SESSION%"=="" set SESSION=session-1 & typst watch src/%SESSION%/main.typ slides/%SESSION%.pdf"'
+[tasks]
+generate = "python generate_slides.py"
 
 [dependencies]
 typst = ">=0.14.2,<0.15"
+python = ">=3.14.4,<3.15"
+
+[pypi-dependencies]
+typst = ">=0.14.8, <0.15"
