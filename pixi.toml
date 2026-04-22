@@ -9,18 +9,19 @@ version = "0.1.0"
 [target.linux-64.tasks]
 configure = "cmake -S . -B build -G \"Ninja\" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_COMPILER=$CONDA_PREFIX/bin/clang -DCMAKE_CXX_COMPILER=$CONDA_PREFIX/bin/clang++-22"
 run = { cmd = "./build/rocky", depends-on = ["compile"] }
+clean = "rm -r build"
+compile = { cmd = "cmake --build build", depends-on = ["configure"] }
 
+# Windows auto-installs and uses msvc
 [target.win-64.tasks]
 msvc-shims = "cmd /C msvcup resolve --config %PIXI_PROJECT_ROOT%/msvcup.toml --out-dir %CONDA_PREFIX%/bin"
+# use this task to cleanup msvc if you'd like
 clean-msvc = { cmd = "cmd /C rmdir /S /Q %USERPROFILE%\\.msvcup 2>nul & exit 0" }
-configure = { cmd = "msvcup-autoenv install && cmake -S . -B build -G \"Ninja\" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl", depends-on = ["msvc-shims"] }
-compile   = "cmake --build build"
-run       = { cmd = ".\\build\\rocky.exe", depends-on = ["compile"] }
-
-# Common to both OSes
-[tasks]
-compile = { cmd = "cmake --build build", depends-on = ["configure"] }
-clean = "rm -rf build"
+configure = { cmd = "cmd /C msvcup-autoenv install && cmake -S . -B build -G \"Ninja\" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl", depends-on = ["msvc-shims"] }
+compile   = "cmd /C cmake --build build"
+run       = { cmd = "cmd /C .\\build\\rocky.exe", depends-on = ["compile"] }
+clean = "cmd /C rmdir /S /Q %PIXI_PROJECT_ROOT%\\build"
+compile = { cmd = "cmd /C cmake --build build", depends-on = ["configure"] }
 
 [dependencies]
 cmake = ">=4.3.1,<5"
