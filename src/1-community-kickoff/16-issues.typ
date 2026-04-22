@@ -2,12 +2,9 @@
 #import "@preview/metropolyst:0.1.0": *
 
 #slide[
-  = Getting Started
-  - *Setup:* Ensure your development environment is fully working and you can run the build.
-  - *Next Step:* Check the GitHub repository for your assigned issues and start diving in.
-  - *Resources:*
-    - #link("https://craftinginterpreters.com/introduction.html")[_Crafting Interpreters_] - great for beginners!
-    - #link("https://llvm.org/docs/tutorial/")[_Kaleidoscope - LLVM Tutorial_] - great for intermediate folks!
-    - #link("https://llvm.org/docs/")[_LLVM Documentation_] - Use for reference
-  - *Stuck?* Search the web, read the docs, and ask in `#help`. These are *always preferred* over turning to AI first.
+  = Norms
+  - Be kind. We're all learning.
+  - Review others' PRs within 48 hours.
+  - If you're blocked for more than a day, say something.
+  - Async is the default; meetings are for things async can't solve.
 ]

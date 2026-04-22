@@ -3,23 +3,35 @@
 #import "../lib.typ": *
 
 #slide[
-  = Windows Setup
-  - Install Pixi:
-    #link("https://pixi.prefix.dev/latest/installation/#__tabbed_1_2")[Pixi installation (Windows)]
-  - Verify Pixi in CMD and PowerShell:
+  = Common Steps
+  - Note: Windows users, use Command Prompt for running commands.
+  - Clone #link("https://github.com/skadewdl3/rocky")[`skadewdl3/rocky`]:
     #with-codly-config(zebra-fill: rgb("#eee"))[
-      ```powershell
-      pixi --help
+      ```bash
+      git clone https://github.com/skadewdl3/rocky
+      cd rocky
       ```
     ]
-  - Install Git:
-    #link("https://git-scm.com/install/windows")[git-scm.com/install/windows]
-  - Verify Git in CMD and PowerShell:
+  - Install project environment:
     #with-codly-config(zebra-fill: rgb("#eee"))[
-      ```powershell
-      git --help
+      ```bash
+      pixi install
       ```
     ]
-  - Do not manually install compilers/build tools on Windows.
-    Pixi will handle that for this project.
+  - Generate Ninja files using CMake:
+    #with-codly-config(zebra-fill: rgb("#eee"))[
+      ```bash
+      pixi run configure
+      ```
+    ]
+    - *[Windows Only]:* Pixi will install MSVC when run for the first-time.
+    - All other dependencies like CMake, Ninja, LLVM, etc. are pulled from Conda.
+    - The `build` folder will be populated with Ninja files by CMake.
+  - Build and run:
+    #with-codly-config(zebra-fill: rgb("#eee"))[
+      ```bash
+      pixi run run
+      ```
+    ]
+  - Expected result: a bunch of assembly code should be printed out.
 ]
