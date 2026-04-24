@@ -19,8 +19,8 @@
   %val = load i32, ptr %x  ; Read the current value
   ```
   ===== Research & Reading
-  - If we're putting everything on the stack, why have SSA registers at all? (Hint: `mem2reg`)
-  - What is a *#sym.phi node* (`phi` instruction)? Why is it necessary needed?
+  - If we're putting everything on the stack, why have SSA registers at all? (Hint: search for `mem2reg`)
+  - If you have a loop that increments a counter, describe the two ways to represent that counter: one using `alloca`/`load`/`store` and one using a #sym.phi node - which is easier for a compiler frontend to generate?
   - What are the requirements for an `alloca` to be promoted by `mem2reg`? (Hint: Can you promote it if its address is passed to a function?)
   - #link("https://en.wikipedia.org/wiki/Static_single_assignment_form")[Static Single Assignment (SSA)] - The theoretical foundation.
   - #link("https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl07.html")[Kaleidoscope: Mutable Variables] - A deep dive into the trade-offs of this approach.
