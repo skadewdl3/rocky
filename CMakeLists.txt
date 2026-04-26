@@ -50,7 +50,6 @@ foreach(test_src ${TEST_SOURCES})
     file(RELATIVE_PATH rel_dir ${CMAKE_SOURCE_DIR} ${test_dir})
 
     string(REPLACE "/" "_" rel_dir_name ${rel_dir})
-
     set(test_name "${rel_dir_name}_${test_file}")
 
     add_executable(${test_name}
@@ -77,5 +76,13 @@ foreach(test_src ${TEST_SOURCES})
     )
 
     add_test(NAME ${test_name} COMMAND ${test_name})
+
+    string(REPLACE "tests/" "" rel_dir_clean ${rel_dir})
+
+    set(test_label "${rel_dir_clean}/${test_file}")
+
+    set_tests_properties(${test_name} PROPERTIES
+        LABELS ${test_label}
+    )
 
 endforeach()

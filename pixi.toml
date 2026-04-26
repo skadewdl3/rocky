@@ -11,9 +11,7 @@ configure = "cmake -S . -B build -G \"Ninja\" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 run = { cmd = "./build/rocky", depends-on = ["compile"] }
 clean = "rm -r build"
 compile = { cmd = "cmake --build build", depends-on = ["configure"] }
-test = { cmd = "ctest --test-dir build", depends-on = ["compile"] }
-test-one = { cmd = "ctest --test-dir build -R {{ test_name }}", depends-on = ["compile"], args = ["test_name"] }
-test-group = { cmd = "ctest --test-dir build -R {{ group_name }}", depends-on = ["compile"], args = ["group_name"] }
+test = { cmd = "ctest --test-dir build -L {{ label }}", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
 
 # Windows auto-installs and uses msvc
 [target.win-64.tasks]
@@ -24,9 +22,7 @@ configure = { cmd = "cmd /C msvcup-autoenv install && cmake -S . -B build -G \"N
 run       = { cmd = "cmd /C .\\build\\rocky.exe", depends-on = ["compile"] }
 clean = "cmd /C rmdir /S /Q %PIXI_PROJECT_ROOT%\\build"
 compile = { cmd = "cmd /C cmake --build build", depends-on = ["configure"] }
-test = { cmd = "cmd /C ctest --test-dir build", depends-on = ["compile"] }
-test-one = { cmd = "cmd /C ctest --test-dir build -R {{ test_name }}", depends-on = ["compile"], args = ["test_name"] }
-test-group = { cmd = "cmd /C ctest --test-dir build -R {{ group_name }}", depends-on = ["compile"], args = ["group_name"] }
+test = { cmd = "cmd /C ctest --test-dir build -L {{ label }}", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
 
 [dependencies]
 cmake = ">=4.3.1,<5"
