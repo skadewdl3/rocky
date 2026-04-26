@@ -3,3 +3,6 @@
 !.pixi/config.toml
 build
 .cache
+
+# 4coder editor
+project.4coder
