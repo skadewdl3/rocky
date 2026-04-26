@@ -3,3 +3,15 @@
 !.pixi/config.toml
 build/*
 slides/*
+
+# local IDE/editor state
+.vs/
+.vscode/
+
+# local output folders
+out/
+
+# Python cache/artifacts
+__pycache__/
+*.py[cod]
+
