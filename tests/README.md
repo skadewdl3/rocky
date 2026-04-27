@@ -22,7 +22,7 @@ Ensure the following tools are installed before getting started:
 
 - **CMake** ≥ 3.15
 - **Pixi** — [installation guide](https://prefix.dev/docs/pixi/overview)
-- A C compiler (GCC, Clang, or MSVC)
+- A C compiler (Clang on Linux, or MSVC on Windows)
 
 ---
 
@@ -115,6 +115,16 @@ int main(void) {
 
 For the full list, see the [Unity Assertion Reference](https://github.com/ThrowTheSwitch/Unity/blob/master/docs/UnityAssertionsReference.md).
 
+### Adding New Tests
+
+Simply create a new `.c` file in the appropriate `tests/` subdirectory:
+
+```sh
+touch tests/core/test_new_feature.c
+```
+
+The build system will automatically detect and include it on the next build. **No CMake changes required.**
+
 ---
 
 ## Running Tests
@@ -148,6 +158,16 @@ Test labels are derived directly from file paths:
 | `tests/core/test_math.c` | `core/test_math` |
 | `tests/parser/ast/test_ast.c` | `parser/ast/test_ast` |
 
+Labels are **regex-based**, meaning you can match multiple tests using patterns when filtering.
+
+For example:
+- `core` → runs all tests in the `core` component
+- `parser/.*` → runs all parser-related tests
+
+Under the hood, this uses CTest's `-L` (label) filtering.
+
+For more details, see the [CTest `-L` (label filtering) documentation](https://cmake.org/cmake/help/latest/manual/ctest.1.html#cmdoption-ctest-L).
+
 ---
 
 ## How It Works
@@ -164,14 +184,6 @@ Source files from `src/` are automatically linked into each test executable, so 
 
 `main.c` from the application source is excluded from test builds to prevent `multiple definition of 'main'` linker errors.
 
-### Build Flow
-
-```
-tests/**/*.c  ──► CMake discovery ──► compile each file ──► link with src/ ──► test executables
-                                
-pixi run test ────► run & report
-```
-
 ---
 
 ## Guidelines
@@ -182,17 +194,5 @@ pixi run test ────► run & report
 - **No application logic in tests** — test files should only contain test code and assertions
 - **Follow naming conventions** — use `test_<feature>.c` and place files under `tests/<component>/`
 - **Write meaningful test cases** — test edge cases, not just the happy path
-
----
-
-## Adding New Tests
-
-Simply create a new `.c` file in the appropriate `tests/` subdirectory:
-
-```sh
-touch tests/core/test_new_feature.c
-```
-
-The build system will automatically detect and include it on the next build. **No CMake changes required.**
 
 ---
