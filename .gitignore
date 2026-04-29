@@ -4,3 +4,5 @@
 build
 .cache
 .vscode/
+tests/lit/.lit_test_times.txt
+tests/lit/**/Output/

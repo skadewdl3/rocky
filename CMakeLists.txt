@@ -33,6 +33,15 @@ endif()
 
 
 #Testing Part
+set(FAKE_PARSER_BIN_DIR "${CMAKE_BINARY_DIR}/tools")
+
+add_executable(fake_parser tools/fake_parser.c)
+set_target_properties(fake_parser PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${FAKE_PARSER_BIN_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FAKE_PARSER_BIN_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FAKE_PARSER_BIN_DIR}
+)
+
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
     ${CMAKE_SOURCE_DIR}/src/*.c
 )
@@ -86,3 +95,25 @@ foreach(test_src ${TEST_SOURCES})
     )
 
 endforeach()
+
+set(LIT_TEST_ROOT "${CMAKE_SOURCE_DIR}/tests/lit")
+find_program(LLVM_LIT NAMES llvm-lit llvm-lit.py lit
+    HINTS ${LLVM_TOOLS_BINARY_DIR} ${CMAKE_PREFIX_PATH}/bin
+)
+find_program(FILECHECK_EXE NAMES FileCheck FileCheck.exe
+    HINTS ${LLVM_TOOLS_BINARY_DIR} ${CMAKE_PREFIX_PATH}/bin ${CMAKE_PREFIX_PATH}/libexec/llvm
+)
+
+if(EXISTS "${LIT_TEST_ROOT}" AND LLVM_LIT AND FILECHECK_EXE)
+    set(FAKE_PARSER_BIN "${FAKE_PARSER_BIN_DIR}/fake_parser${CMAKE_EXECUTABLE_SUFFIX}")
+    add_test(NAME lit
+        COMMAND ${LLVM_LIT}
+            -v
+            -Dparser=${FAKE_PARSER_BIN}
+            -Dfilecheck=${FILECHECK_EXE}
+            ${LIT_TEST_ROOT}
+    )
+    set_tests_properties(lit PROPERTIES LABELS "lit")
+elseif(EXISTS "${LIT_TEST_ROOT}")
+    message(WARNING "Lit tests are configured but llvm-lit or FileCheck was not found.")
+endif()
