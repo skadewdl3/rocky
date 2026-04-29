@@ -1,0 +1,9 @@
+// RUN: %parser %s | FileCheck %s
+
+// CHECK: define i32 @main()
+// CHECK: %{{.*}} = add i32 2, 3
+// CHECK: ret i32 %{{.*}}
+
+fn main() {
+    return 2 + 3;
+}
