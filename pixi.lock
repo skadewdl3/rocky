@@ -1,0 +1,18 @@
+version: 6
+environments:
+  default:
+    channels:
+    - url: https://prefix.dev/brads-forge/
+    - url: https://conda.anaconda.org/conda-forge/
+    options:
+      pypi-prerelease-mode: if-necessary-or-explicit
+    packages:
+      linux-64:
+      - conda: https://prefix.dev/brads-forge/linux-64/bun-1.3.13-h81b34b9_0.conda
+packages:
+- conda: https://prefix.dev/brads-forge/linux-64/bun-1.3.13-h81b34b9_0.conda
+  sha256: 51647927ae5137b7b05439624b13c21edd87205b98daed1961f2f6373dc3ac9c
+  md5: 50ca217a0837bbcfe0741a3121c7a547
+  license: MIT
+  size: 32417373
+  timestamp: 1776745871008

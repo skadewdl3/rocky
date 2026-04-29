@@ -1,0 +1,25 @@
+{
+  "name": "",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "prebuild": "bun run build-docs",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "generate-types": "wrangler types",
+    "build-docs": "bun src/scripts/build-docs.ts"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^13.2.2",
+    "@astrojs/starlight": "^0.38.4",
+    "astro": "^6.1.9",
+    "sharp": "^0.34.5",
+    "wrangler": "^4.86.0"
+  },
+  "overrides": {
+    "vite": "^7"
+  }
+}
