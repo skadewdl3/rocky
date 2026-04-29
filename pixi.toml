@@ -11,7 +11,8 @@ configure = "cmake -S . -B build -G \"Ninja\" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 run = { cmd = "./build/rocky", depends-on = ["compile"] }
 clean = "rm -r build"
 compile = { cmd = "cmake --build build", depends-on = ["configure"] }
-test = { cmd = "ctest --test-dir build -L {{ label }}", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
+test = { cmd = "ctest --test-dir build -L \"({{ label }})|(lit)\"", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
+lit = { cmd = "ctest --test-dir build -L lit", depends-on = ["compile"] }
 
 # Windows auto-installs and uses msvc
 [target.win-64.tasks]
@@ -22,7 +23,8 @@ configure = { cmd = "cmd /C msvcup-autoenv install && cmake -S . -B build -G \"N
 run       = { cmd = "cmd /C .\\build\\rocky.exe", depends-on = ["compile"] }
 clean = "cmd /C rmdir /S /Q %PIXI_PROJECT_ROOT%\\build"
 compile = { cmd = "cmd /C cmake --build build", depends-on = ["configure"] }
-test = { cmd = "cmd /C ctest --test-dir build -L {{ label }}", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
+test = { cmd = "cmd /C ctest --test-dir build -L \"({{ label }})|(lit)\"", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
+lit = { cmd = "cmd /C ctest --test-dir build -L lit", depends-on = ["compile"] }
 
 [dependencies]
 cmake = ">=4.3.1,<5"
@@ -30,6 +32,9 @@ llvm    = ">=22.1.3,<23"
 llvmdev = ">=22.1.3,<23"
 zlib = ">=1.3.2,<2"
 ninja = ">=1.13.2,<2"
+python = ">=3.10,<4"
+lit = ">=18,<19"
+llvm-tools = ">=22.1.3,<23"
 
 [target.linux-64.dependencies]
 clang   = ">=22.1.3,<23"
