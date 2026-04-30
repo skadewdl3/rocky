@@ -18,7 +18,8 @@ typedef enum {
     TOKEN_STAR,      
     TOKEN_SLASH,     
     TOKEN_PERCENT,   
-    TOKEN_EQUALS,    
+    TOKEN_EQUALS,
+    TOKEN_POW,    
 
     /*  Parentheses  */
     TOKEN_LPAREN,    
