@@ -7,31 +7,31 @@
 
 /* Bitmask enum for conditional printing of tokens */ 
 typedef enum {
-    KIND = 1 << 0,
-    LEXEME = 1 << 1,
-    LINE = 1 << 2,
-    COL = 1 << 3,
-} TokenFlags;
+    TOK_PRINT_FLAG_KIND = 1 << 0,
+    TOK_PRINT_FLAG_LEXEME = 1 << 1,
+    TOK_PRINT_FLAG_LINE = 1 << 2,
+    TOK_PRINT_FLAG_COL = 1 << 3,
+} TokenPrintFlags;
 
 /* Convert TokenType enum to a human-readable string. */
-const char* tokenTypeStr(TokenType type);
+const char* token_type_str(TokenType type);
 
 /* Convert UnaryOp enum to a human-readable string. */
-const char* unaryOpStr(UnaryOp op);
+const char* unary_op_str(UnaryOp op);
 
 /* Convert TypeKind enum to a human-readable string. */
-const char* typeStr(TypeKind t);
+const char* datatype_str(TypeKind t);
 
 /* Convert BinaryOP enum to a human-readable string. */
-const char* binaryOpStr(BinaryOp op);
+const char* binary_op_str(BinaryOp op);
 
 /* Diagnostic printer for lexer
  * Params: 
  * 1.token: pointer to the token struct.
  * 2.flags: bitmask specifying which fields to print (KIND, LEXEME, LINE, COL).
- * Sample usage: printToken(token, KIND | LINE) will print the token type and its line number.
+ * * Sample usage: print_token(token, TOK_PRINT_FLAG_KIND | TOK_PRINT_FLAG_LINE) will print the token type and its line.
  * */
-void printToken(Token* token, unsigned int flags);
+void print_token(Token* token, TokenPrintFlags flags);
 
 /* Diagnostic printer for AST nodes
  * Params: 
@@ -41,6 +41,5 @@ void printToken(Token* token, unsigned int flags);
  * 4. sibling: bitmask tracking which ancestor levels were the last child, used for drawing tree branches correctly.
  * Sample Usage: printExpr(expr, 0, 1, 0);
  * */
-void printExpr(const Expr* expr, int depth, int isLast, int sibling);
-void printAll(void);
+void print_expr(const Expr* expr, int depth, int isLast, int sibling);
 #endif
