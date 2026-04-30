@@ -3,6 +3,7 @@
 #include <inttypes.h>
 
 #ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
     static int use_color(void) {
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
