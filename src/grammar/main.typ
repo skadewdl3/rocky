@@ -3,15 +3,30 @@
 
 #set text(lang: "en")
 
+
 #show: ilm.with(
-title: [Language Grammar],
-author: "OSS Community",
-footer: "page-number-center",
-chapter-pagebreak: false,
-figure-index: (enabled: false),
-table-index: (enabled: false),
-listing-index: (enabled: false),
+  title: [Language Grammar],
+  author: "OSS Community",
+  footer: "page-number-center",
+  chapter-pagebreak: false,
+  figure-index: (enabled: false),
+  table-index: (enabled: false),
+  listing-index: (enabled: false),
 )
+
+
+
+#metadata((
+  title: "Rocky Language Grammar",
+  description: "A formal grammar in EBNF which defines the syntax that the Rocky JIT Compiler accepts.",
+))<docs-config>
+
+#heading(level: 1, numbering: none)[How to Navigate This Document]
+- When reading the grammar, if you want to see more details about a specific rule, click on the symbol (to the left-hand side of the arrow). This will lead you to the relevant section of the document.
+- To come back to the grammar rule, which the section details - click on the section heading.
+- If you'd like to see the definition of a symbol, which has been referenced on the right-hand side of the arrow, clicking on it will lead you to the part of the grammar where it's defined.
+
+
 
 = Grammar
 
