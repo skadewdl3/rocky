@@ -1,0 +1,275 @@
+---
+import Default from "../layouts/Default.astro";
+
+export const prerender = false;
+
+const protocol = Astro.url.protocol;
+const host = `${protocol}//${Astro.url.host.split("/").filter(Boolean).join("/")}`;
+
+let slides: Record<
+    string,
+    { title: string; description: string; date?: string; video?: string }
+> = {};
+
+try {
+    const res = await fetch(new URL("/slides.json", Astro.url));
+    slides = await res.json();
+} catch (e) {
+    // fallback: empty
+}
+
+const entries = Object.entries(slides).map(([slug, meta]) => ({
+    slug,
+    href: `${host}${slug}.pdf`,
+    ...meta,
+}));
+---
+
+<Default>
+    <style slot="styles">
+        /* ── Slide card ── */
+        .slide-card {
+            display: grid;
+            grid-template-columns: 60px 1fr auto;
+            border-bottom: 4px solid #000;
+            transition: background 0.15s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        .slide-card:hover {
+            background: #f0e000;
+        }
+        .slide-card:hover .card-index {
+            background: #000;
+            color: #f0e000;
+        }
+        .slide-card:hover .arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .card-index {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 4px solid #000;
+            background: #f5f0e8;
+            font-family: "Bebas Neue", sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+            color: #000;
+            padding: 1.25rem 0;
+            transition:
+                background 0.15s,
+                color 0.15s;
+        }
+
+        .card-body {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .card-title {
+            font-family: "Bebas Neue", sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 0.06em;
+            line-height: 1;
+        }
+
+        .card-desc {
+            font-family: "Space Mono", monospace;
+            font-size: 0.68rem;
+            line-height: 1.55;
+            opacity: 0.6;
+            max-width: 56ch;
+        }
+
+        .card-meta {
+            margin-top: 0.25rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-family: "Space Mono", monospace;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            border: 2px solid #000;
+            padding: 2px 7px;
+            opacity: 0.55;
+        }
+
+        .badge-video {
+            opacity: 0.9;
+            background: #000;
+            color: #f0e000;
+            border-color: #000;
+        }
+
+        .card-arrow {
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+        }
+
+        .arrow {
+            font-family: "Bebas Neue", sans-serif;
+            font-size: 2rem;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition:
+                opacity 0.15s,
+                transform 0.15s;
+        }
+
+        /* ── Ticker band ── */
+        @keyframes ticker {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
+        .ticker-inner {
+            display: inline-flex;
+            gap: 0;
+            white-space: nowrap;
+            animation: ticker 24s linear infinite;
+        }
+
+        /* ── Stats bar ── */
+        .stat-block {
+            border-right: 4px solid #000;
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .stat-block:last-child {
+            border-right: none;
+        }
+    </style>
+
+    <main class="grid grid-cols-[1fr] h-full">
+        <!-- CARD LIST -->
+        <section class="flex flex-col">
+            <!-- Column headers -->
+            <div
+                class="border-b-4 border-black grid"
+                style="grid-template-columns:60px 1fr auto; background:#000; color:#f0e000;"
+            >
+                <div
+                    class="border-r-4 border-[#f0e000] px-3 py-2 flex items-center justify-center"
+                >
+                    <span
+                        class="font-bebas text-sm tracking-widest"
+                        style="font-family:'Bebas Neue',sans-serif;">#</span
+                    >
+                </div>
+                <div class="px-6 py-2 flex items-center gap-8">
+                    <span
+                        class="font-bebas text-sm tracking-widest"
+                        style="font-family:'Bebas Neue',sans-serif;"
+                        >Title / Description</span
+                    >
+                </div>
+            </div>
+
+            <!-- Slide cards -->
+            {
+                entries.length === 0 ? (
+                    <div class="flex items-center justify-center flex-1 py-24 opacity-30">
+                        <span
+                            class="font-bebas text-4xl tracking-widest"
+                            style="font-family:'Bebas Neue',sans-serif;"
+                        >
+                            NO SLIDES FOUND
+                        </span>
+                    </div>
+                ) : (
+                    // entries.map(
+                    entries.map((entry, i) => (
+                        <div
+                            class="slide-card cursor-pointer"
+                            data-url={entry.href}
+                        >
+                            <div class="card-index">
+                                {(i + 1).toString().padStart(2, "0")}
+                            </div>
+
+                            <div class="card-body">
+                                <div class="card-title">{entry.title}</div>
+                                {entry.description && (
+                                    <div class="card-desc">
+                                        {entry.description}
+                                    </div>
+                                )}
+                                <div class="card-meta">
+                                    <span class="badge">PDF</span>
+                                    {entry.date && (
+                                        <span class="badge">{entry.date}</span>
+                                    )}
+                                    {entry.video && (
+                                        <span
+                                            class="badge badge-video"
+                                            data-url={entry.video}
+                                        >
+                                            ▶ Video
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div class="card-arrow">
+                                <span class="arrow">→</span>
+                            </div>
+                        </div>
+                    ))
+                )
+            }
+        </section>
+    </main>
+
+    <div
+        slot="footer"
+        class="border-t-4 border-b-4 border-black overflow-hidden py-2 bg-[#f0e000]"
+    >
+        <div class="ticker-inner">
+            {
+                [...entries, ...entries].map((e, i) => (
+                    <span
+                        class="font-bebas text-sm tracking-widest px-8 opacity-70"
+                        style="font-family:'Bebas Neue',sans-serif;"
+                    >
+                        {e.title} ░
+                    </span>
+                ))
+            }
+        </div>
+    </div>
+
+    <script>
+        for (let card of Array.from(
+            document.getElementsByClassName("slide-card"),
+        )) {
+            card.addEventListener("click", (e) => {
+                window.open(card.dataset.url, "_blank");
+            });
+        }
+
+        for (let card of Array.from(
+            document.getElementsByClassName("badge-video"),
+        )) {
+            card.addEventListener("click", (e) => {
+                window.open(card.dataset.url, "_blank");
+                e.stopPropagation();
+            });
+        }
+    </script>
+</Default>

@@ -1,0 +1,259 @@
+---
+import Default from "../layouts/Default.astro";
+export const prerender = false;
+---
+
+<Default>
+    <style slot="styles">
+        .docs-page {
+            min-height: calc(100vh - 8rem);
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            border-bottom: 4px solid #000;
+        }
+
+        /* Top status bar */
+        .status-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            background: #000;
+            color: #f5f0e8;
+            border-bottom: 4px solid #000;
+        }
+        .status-cell {
+            padding: 0.5rem 1.25rem;
+            font-family: "Space Mono", monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            opacity: 0.5;
+            border-right: 4px solid #f5f0e8;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .status-cell:last-child {
+            border-right: none;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f0e000;
+            flex-shrink: 0;
+            animation: blink 1.4s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.2;
+            }
+        }
+
+        /* Main area */
+        .docs-body {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            flex: 1;
+        }
+
+        /* Hero text block */
+        .docs-left {
+            background: #f5f0e8;
+            padding: 4rem 3.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2.5rem;
+        }
+
+        .coming-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .coming-label-line {
+            width: 36px;
+            height: 4px;
+            background: #000;
+        }
+        .coming-label-text {
+            font-family: "Space Mono", monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            opacity: 0.5;
+        }
+
+        .coming-title {
+            font-family: "Bebas Neue", sans-serif;
+            font-size: clamp(4.5rem, 11vw, 8.5rem);
+            line-height: 0.88;
+            letter-spacing: 0.03em;
+            color: #000;
+        }
+        .coming-title .yl {
+            color: #f0e000;
+            -webkit-text-stroke: 3px #000;
+            paint-order: stroke fill;
+        }
+
+        .coming-sub {
+            font-family: "Space Mono", monospace;
+            font-size: 0.78rem;
+            line-height: 1.8;
+            opacity: 0.55;
+            max-width: 44ch;
+            border-left: 4px solid #000;
+            padding-left: 1.25rem;
+        }
+
+        @keyframes grow {
+            from {
+                width: 0;
+            }
+            to {
+                width: 18%;
+            }
+        }
+
+        /* Right panel */
+        .docs-right {
+            background: #f5f0e8;
+            display: flex;
+            flex-direction: column;
+        }
+        .info-block {
+            padding: 1.5rem 1.25rem;
+            border-bottom: 4px solid #000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            flex: 1;
+        }
+        .info-block:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-family: "Space Mono", monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            opacity: 0.4;
+        }
+        .info-value {
+            font-family: "Bebas Neue", sans-serif;
+            font-size: 1.9rem;
+            letter-spacing: 0.06em;
+            line-height: 1;
+        }
+        .info-sub {
+            font-family: "Space Mono", monospace;
+            font-size: 0.58rem;
+            line-height: 1.6;
+            opacity: 0.4;
+        }
+
+        /* Bottom bar */
+        .docs-bottom {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            background: #f0e000;
+            border-top: 4px solid #000;
+        }
+        .docs-bottom-msg {
+            padding: 1rem 1.5rem;
+            font-family: "Space Mono", monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            border-right: 4px solid #000;
+            display: flex;
+            align-items: center;
+        }
+        .docs-bottom-link {
+            padding: 1rem 1.5rem;
+            font-family: "Bebas Neue", sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            color: #000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition:
+                background 0.12s,
+                color 0.12s;
+        }
+        .docs-bottom-link:hover {
+            background: #000;
+            color: #f0e000;
+        }
+
+        @media (max-width: 720px) {
+            .docs-body {
+                grid-template-columns: 1fr;
+            }
+            .docs-right {
+                display: none;
+            }
+            .docs-left {
+                padding: 2.5rem 1.5rem;
+            }
+            .status-bar {
+                grid-template-columns: 1fr;
+            }
+            .status-cell {
+                border-right: none;
+                border-bottom: 2px solid #f5f0e8;
+            }
+        }
+    </style>
+
+    <main class="docs-page">
+        <!-- STATUS BAR -->
+        <div class="status-bar">
+            <div class="status-cell">
+                <span class="status-dot"></span>
+                Status · In Progress
+            </div>
+            <div class="status-cell">
+                <span class="status-dot"></span>
+                Still gotta add doc comments lol
+            </div>
+            <div class="status-cell">
+                <span class="status-dot"></span>
+                Setting up Doxygen is a bitch
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="docs-body">
+            <!-- LEFT -->
+            <div class="docs-left">
+                <h1 class="coming-title">
+                    COM<span class="yl">ING</span><br />
+                    SO<span class="yl">ON</span>
+                </h1>
+
+                <p class="coming-sub">
+                    We're writing the docs as we build the compiler - every
+                    phase, every decision is documented in public. Check back
+                    soon or follow along on GitHub.
+                </p>
+            </div>
+        </div>
+
+        <!-- BOTTOM BAR -->
+        <div class="docs-bottom">
+            <div class="docs-bottom-msg">
+                In the meantime, check out the slides and our weekly meetings
+                for progress updates
+            </div>
+            <a href="/slides" class="docs-bottom-link"> View Slides → </a>
+        </div>
+    </main>
+</Default>

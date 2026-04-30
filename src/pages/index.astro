@@ -1,0 +1,286 @@
+---
+import Default from "../layouts/Default.astro";
+---
+
+<Default>
+    <style slot="styles">
+        /* ── Hero ── */
+        .hero {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            min-height: calc(100vh - 8rem);
+            border-bottom: 4px solid #000;
+        }
+
+        /* Top bar */
+        .hero-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            grid-template-columns: auto;
+            border-bottom: 4px solid #000;
+            background: #000;
+            color: #f0e000;
+        }
+        .hero-topbar-cell {
+            padding: 0.55rem 1.25rem;
+            display: flex;
+            align-items: center;
+            font-family: "Space Mono", monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0.75;
+        }
+        .hero-topbar-cell:last-child {
+            border-right: none;
+        }
+
+        /* Main body */
+        .hero-body {
+            display: grid;
+            grid-template-columns: 1fr 220px;
+            border-bottom: 4px solid #000;
+        }
+
+        .hero-left {
+            padding: 4rem 3.5rem 3.5rem;
+            border-right: 4px solid #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2rem;
+            background: #f5f0e8;
+        }
+
+        .hero-eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .eyebrow-line {
+            width: 36px;
+            height: 4px;
+            background: #000;
+            flex-shrink: 0;
+        }
+        .eyebrow-text {
+            font-family: "Space Mono", monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            opacity: 0.55;
+        }
+
+        .hero-title {
+            font-family: "Bebas Neue", sans-serif;
+            font-size: clamp(5rem, 12vw, 9rem);
+            line-height: 0.9;
+            letter-spacing: 0.04em;
+            color: #000;
+        }
+        .hero-title .accent {
+            color: #f0e000;
+            -webkit-text-stroke: 3px #000;
+        }
+
+        .hero-tagline {
+            font-family: "Space Mono", monospace;
+            font-size: 0.8rem;
+            line-height: 1.75;
+            opacity: 0.65;
+            max-width: 48ch;
+            border-left: 4px solid #000;
+            padding-left: 1.25rem;
+        }
+
+        /* CTA buttons */
+        .hero-cta {
+            display: flex;
+            gap: 0;
+            margin-top: 1rem;
+        }
+        .btn {
+            font-family: "Bebas Neue", sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 0.1em;
+            padding: 0.8rem 2rem;
+            border: 4px solid #000;
+            text-decoration: none;
+            transition:
+                background 0.12s,
+                color 0.12s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #000;
+            color: #f0e000;
+            margin-right: -4px;
+        }
+        .btn-primary:hover {
+            background: #f0e000;
+            color: #000;
+        }
+        .btn-secondary {
+            background: #f5f0e8;
+            color: #000;
+        }
+        .btn-secondary:hover {
+            background: #000;
+            color: #f5f0e8;
+        }
+
+        /* Right sidebar panel */
+        .hero-right {
+            display: flex;
+            flex-direction: column;
+            background: #f5f0e8;
+        }
+        .stat-block {
+            padding: 1.5rem 1.25rem;
+            border-bottom: 4px solid #000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            flex: 1;
+        }
+        .stat-block:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            font-family: "Space Mono", monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            opacity: 0.45;
+        }
+        .stat-value {
+            font-family: "Bebas Neue", sans-serif;
+            font-size: 2.2rem;
+            letter-spacing: 0.05em;
+            line-height: 1;
+        }
+        .stat-sub {
+            font-family: "Space Mono", monospace;
+            font-size: 0.6rem;
+            opacity: 0.45;
+            line-height: 1.5;
+        }
+
+        /* Bottom bar */
+        .hero-bottom {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: #000;
+            color: #f5f0e8;
+        }
+        .bottom-cell {
+            padding: 1rem 1.5rem;
+            border-right: 4px solid #f5f0e8;
+            font-family: "Space Mono", monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            opacity: 0.5;
+            display: flex;
+            align-items: center;
+        }
+        .bottom-cell:last-child {
+            border-right: none;
+        }
+
+        /* ── Ticker band ── */
+        @keyframes ticker {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
+        .ticker-inner {
+            display: inline-flex;
+            gap: 0;
+            white-space: nowrap;
+            animation: ticker 20s linear infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 720px) {
+            .hero-body {
+                grid-template-columns: 1fr;
+            }
+            .hero-right {
+                display: none;
+            }
+            .hero-left {
+                padding: 2.5rem 1.5rem 2.5rem;
+            }
+            .hero-bottom {
+                grid-template-columns: 1fr;
+            }
+            .bottom-cell {
+                border-right: none;
+                border-bottom: 2px solid #f5f0e8;
+            }
+        }
+    </style>
+
+    <main class="hero">
+        <!-- TOP BAR -->
+        <div class="hero-topbar">
+            <div class="hero-topbar-cell">
+                An experiment for the VIT OSS Systems Community
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="hero-body">
+            <!-- LEFT -->
+            <div class="hero-left">
+                <div class="hero-eyebrow">
+                    <div class="eyebrow-line"></div>
+                    <span class="eyebrow-text">Open Source · JIT Compiler</span>
+                </div>
+
+                <h1 class="hero-title">
+                    ROC<span class="accent">KY</span>
+                </h1>
+
+                <p class="hero-tagline">
+                    A LLVM ORCJIT-based JIT compiler built together - open,
+                    transparent, and documented from first principles.
+                </p>
+
+                <div class="hero-cta">
+                    <a href="/docs" class="btn btn-primary"> Read Docs → </a>
+                    <a href="/slides" class="btn btn-secondary">
+                        View Slides ░
+                    </a>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDEBAR -->
+            <div class="hero-right">
+                <div class="stat-block">
+                    <span class="stat-label">Type</span>
+                    <span class="stat-value">JIT</span>
+                    <span class="stat-sub">Just-In-Time<br />Compiler</span>
+                </div>
+                <div class="stat-block">
+                    <span class="stat-label">Built</span>
+                    <span class="stat-value">Open</span>
+                    <span class="stat-sub">Source-first<br />development</span>
+                </div>
+                <div class="stat-block">
+                    <span class="stat-label">License</span>
+                    <span class="stat-value">MIT</span>
+                    <span class="stat-sub">Free to use<br />& modify</span>
+                </div>
+            </div>
+        </div>
+    </main>
+</Default>
