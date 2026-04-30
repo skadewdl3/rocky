@@ -38,3 +38,12 @@
 #include "15-issues.typ"
 #include "16-issues.typ"
 #include "17-issues.typ"
+
+
+
+#metadata((
+  title: "1 - Community Kickoff!",
+  description: "We take a look at our async-first workflow, setting up the dev environment and a crash course in constructing compilers.",
+  date: "2026-04-24",
+  video: "https://youtu.be/PTuZAYmh-us",
+))<docs-config>

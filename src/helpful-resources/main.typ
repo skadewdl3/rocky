@@ -47,3 +47,9 @@
 #include "17-arrays-and-structs.typ"
 #include "18-memory-management.typ"
 #include "19-end.typ"
+
+
+#metadata((
+  title: "Helpful Resources",
+  description: "A compilation of blogs, docs, videos and more to help you get started creating different components of Rocky.",
+))<docs-config>

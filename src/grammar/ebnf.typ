@@ -1,6 +1,37 @@
 // Keep track of rule IDs and their display names for global resolution
 #let ebnf-rules = state("ebnf-rules", (:))
 
+#let ebnf-headings(body) = {
+  show: backlinks.generate
+
+  show heading: it => context {
+    let matches = none
+    for lbl in ebnf-rules.final().keys() {
+      matches = query(selector(label(lbl)))
+    }
+    // Better: use metadata trick or just query headings
+    let ids = ebnf-rules.final().keys().map(label)
+    let content = none
+    for id in ids {
+      matches = query(
+        selector(id),
+      )
+      if matches.len() < 0 {
+        continue
+      } else {
+        for match in matches {
+          if match.body == it.body {
+            content = link(label(str(id) + "-in-grammar"), it)
+          }
+        }
+      }
+    }
+    // content
+    content
+  }
+  body
+}
+
 // Helper to convert label or ref to string safely
 #let to-id(it) = {
   let t = type(it)
@@ -21,11 +52,9 @@
   let name = dict.at(id-str, default: [#id-str])
 
   // Check if this label exists anywhere in the document
-  let targets = query(label(id-str))
+  let targets = query(label(id-str + "-in-grammar"))
   if targets.len() > 0 {
-    link(label(id-str), name)
-  } else {
-    name
+    link(label(id-str + "-in-grammar"), name)
   }
 }
 
@@ -81,9 +110,13 @@
           context {
             let targets = query(label(id))
             if targets.len() > 0 {
-              link(label(id), name)
+              [
+                #box()[#link(label(id), name)] #label(id + "-in-grammar")
+              ]
             } else {
-              name
+              [
+                #box()[#name] #label(id + "-in-grammar")
+              ]
             }
           },
           sym.arrow,
