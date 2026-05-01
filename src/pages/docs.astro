@@ -12,7 +12,7 @@ export const prerender = false;
             border-bottom: 4px solid #000;
         }
 
-        /* Top status bar */
+        /* ── STATUS BAR ─────────────────────────────────── */
         .status-bar {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -53,14 +53,13 @@ export const prerender = false;
             }
         }
 
-        /* Main area */
+        /* ── BODY ───────────────────────────────────────── */
         .docs-body {
             display: grid;
             grid-template-columns: 1fr 280px;
-            flex: 1;
         }
 
-        /* Hero text block */
+        /* ── LEFT ───────────────────────────────────────── */
         .docs-left {
             background: #f5f0e8;
             padding: 4rem 3.5rem;
@@ -68,6 +67,7 @@ export const prerender = false;
             flex-direction: column;
             justify-content: center;
             gap: 2.5rem;
+            border-right: 4px solid #000;
         }
 
         .coming-label {
@@ -94,6 +94,7 @@ export const prerender = false;
             line-height: 0.88;
             letter-spacing: 0.03em;
             color: #000;
+            margin: 0;
         }
         .coming-title .yl {
             color: #f0e000;
@@ -109,18 +110,10 @@ export const prerender = false;
             max-width: 44ch;
             border-left: 4px solid #000;
             padding-left: 1.25rem;
+            margin: 0;
         }
 
-        @keyframes grow {
-            from {
-                width: 0;
-            }
-            to {
-                width: 18%;
-            }
-        }
-
-        /* Right panel */
+        /* ── RIGHT PANEL ────────────────────────────────── */
         .docs-right {
             background: #f5f0e8;
             display: flex;
@@ -157,7 +150,7 @@ export const prerender = false;
             opacity: 0.4;
         }
 
-        /* Bottom bar */
+        /* ── BOTTOM BAR ─────────────────────────────────── */
         .docs-bottom {
             display: grid;
             grid-template-columns: 1fr auto;
@@ -184,6 +177,7 @@ export const prerender = false;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            white-space: nowrap;
             transition:
                 background 0.12s,
                 color 0.12s;
@@ -193,22 +187,119 @@ export const prerender = false;
             color: #f0e000;
         }
 
-        @media (max-width: 720px) {
+        /* ── TABLET  (≤ 900px) ──────────────────────────── */
+        @media (max-width: 900px) {
             .docs-body {
-                grid-template-columns: 1fr;
-            }
-            .docs-right {
-                display: none;
+                grid-template-columns: 1fr 220px;
             }
             .docs-left {
-                padding: 2.5rem 1.5rem;
+                padding: 3rem 2rem;
             }
+            .info-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* ── PHABLET / SMALL TABLET  (≤ 720px) ─────────── */
+        @media (max-width: 720px) {
+            /* Status bar stacks vertically */
             .status-bar {
                 grid-template-columns: 1fr;
             }
             .status-cell {
                 border-right: none;
-                border-bottom: 2px solid #f5f0e8;
+                border-bottom: 1px solid rgba(245, 240, 232, 0.2);
+            }
+            .status-cell:last-child {
+                border-bottom: none;
+            }
+
+            /* Body: single column, sidebar goes below */
+            .docs-body {
+                grid-template-columns: 1fr;
+            }
+            .docs-left {
+                padding: 2.5rem 1.5rem;
+                border-right: none;
+                border-bottom: 4px solid #000;
+            }
+
+            /* Sidebar becomes a horizontal strip of 3 cells */
+            .docs-right {
+                flex-direction: row;
+                border-top: none;
+            }
+            .info-block {
+                flex: 1;
+                border-bottom: none;
+                border-right: 4px solid #000;
+                padding: 1rem;
+            }
+            .info-block:last-child {
+                border-right: none;
+            }
+            .info-value {
+                font-size: 1.4rem;
+            }
+
+            /* Bottom bar wraps */
+            .docs-bottom {
+                grid-template-columns: 1fr;
+            }
+            .docs-bottom-msg {
+                border-right: none;
+                border-bottom: 4px solid #000;
+            }
+            .docs-bottom-link {
+                justify-content: center;
+                padding: 0.85rem 1.5rem;
+            }
+        }
+
+        /* ── MOBILE  (≤ 480px) ──────────────────────────── */
+        @media (max-width: 480px) {
+            .docs-left {
+                padding: 2rem 1.25rem;
+                gap: 1.75rem;
+            }
+
+            /* Sidebar goes fully vertical again at narrow widths */
+            .docs-right {
+                flex-direction: column;
+            }
+            .info-block {
+                border-right: none;
+                border-bottom: 4px solid #000;
+            }
+            .info-block:last-child {
+                border-bottom: none;
+            }
+            .info-value {
+                font-size: 1.75rem;
+            }
+
+            /* Thinner stroke on title at very small sizes */
+            .coming-title .yl {
+                -webkit-text-stroke: 2px #000;
+            }
+
+            .coming-sub {
+                font-size: 0.72rem;
+            }
+        }
+
+        /* ── VERY SMALL  (≤ 360px) ──────────────────────── */
+        @media (max-width: 360px) {
+            .docs-left {
+                padding: 1.5rem 1rem;
+            }
+            .status-cell {
+                font-size: 0.55rem;
+                padding: 0.4rem 1rem;
+            }
+            .docs-bottom-msg {
+                font-size: 0.58rem;
+                padding: 0.75rem 1rem;
             }
         }
     </style>
@@ -234,16 +325,40 @@ export const prerender = false;
         <div class="docs-body">
             <!-- LEFT -->
             <div class="docs-left">
+                <div class="coming-label">
+                    <span class="coming-label-line"></span>
+                    <span class="coming-label-text">Documentation</span>
+                </div>
+
                 <h1 class="coming-title">
                     COM<span class="yl">ING</span><br />
                     SO<span class="yl">ON</span>
                 </h1>
 
                 <p class="coming-sub">
-                    We're writing the docs as we build the compiler - every
+                    We're writing the docs as we build the compiler — every
                     phase, every decision is documented in public. Check back
                     soon or follow along on GitHub.
                 </p>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="docs-right">
+                <div class="info-block">
+                    <span class="info-label">Phase</span>
+                    <span class="info-value">Lexer</span>
+                    <span class="info-sub">Tokenisation complete</span>
+                </div>
+                <div class="info-block">
+                    <span class="info-label">Coverage</span>
+                    <span class="info-value">12%</span>
+                    <span class="info-sub">Doc comments written</span>
+                </div>
+                <div class="info-block">
+                    <span class="info-label">Last push</span>
+                    <span class="info-value">2d ago</span>
+                    <span class="info-sub">Parser in progress</span>
+                </div>
             </div>
         </div>
 
@@ -253,7 +368,7 @@ export const prerender = false;
                 In the meantime, check out the slides and our weekly meetings
                 for progress updates
             </div>
-            <a href="/slides" class="docs-bottom-link"> View Slides → </a>
+            <a href="/slides" class="docs-bottom-link">View Slides →</a>
         </div>
     </main>
 </Default>
