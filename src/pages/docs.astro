@@ -5,44 +5,25 @@ export const prerender = false;
 
 <Default>
     <style slot="styles">
-        .docs-page {
-            min-height: calc(100vh - 8rem);
-            display: grid;
-            grid-template-rows: auto 1fr auto;
-            border-bottom: 4px solid #000;
+        /* clamp() font size — no Tailwind equivalent */
+        .coming-title {
+            font-size: clamp(4.5rem, 11vw, 8.5rem);
+            line-height: 0.88;
         }
 
-        /* ── STATUS BAR ─────────────────────────────────── */
-        .status-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            background: #000;
-            color: #f5f0e8;
-            border-bottom: 4px solid #000;
+        /* paint-order stroke — no Tailwind equivalent */
+        .coming-title .yl {
+            color: #f0e000;
+            -webkit-text-stroke: 3px #000;
+            paint-order: stroke fill;
         }
-        .status-cell {
-            padding: 0.5rem 1.25rem;
-            font-family: "Space Mono", monospace;
-            font-size: 0.6rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            opacity: 0.5;
-            border-right: 4px solid #f5f0e8;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
+        @media (max-width: 480px) {
+            .coming-title .yl {
+                -webkit-text-stroke: 2px #000;
+            }
         }
-        .status-cell:last-child {
-            border-right: none;
-        }
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #f0e000;
-            flex-shrink: 0;
-            animation: blink 1.4s ease-in-out infinite;
-        }
+
+        /* blink keyframe for status dots */
         @keyframes blink {
             0%,
             100% {
@@ -52,323 +33,179 @@ export const prerender = false;
                 opacity: 0.2;
             }
         }
-
-        /* ── BODY ───────────────────────────────────────── */
-        .docs-body {
-            display: grid;
-            grid-template-columns: 1fr 280px;
+        .status-dot {
+            animation: blink 1.4s ease-in-out infinite;
         }
 
-        /* ── LEFT ───────────────────────────────────────── */
-        .docs-left {
-            background: #f5f0e8;
-            padding: 4rem 3.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 2.5rem;
-            border-right: 4px solid #000;
-        }
-
-        .coming-label {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .coming-label-line {
-            width: 36px;
-            height: 4px;
-            background: #000;
-        }
-        .coming-label-text {
-            font-family: "Space Mono", monospace;
-            font-size: 0.65rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            opacity: 0.5;
-        }
-
-        .coming-title {
-            font-family: "Bebas Neue", sans-serif;
-            font-size: clamp(4.5rem, 11vw, 8.5rem);
-            line-height: 0.88;
-            letter-spacing: 0.03em;
-            color: #000;
-            margin: 0;
-        }
-        .coming-title .yl {
-            color: #f0e000;
-            -webkit-text-stroke: 3px #000;
-            paint-order: stroke fill;
-        }
-
-        .coming-sub {
-            font-family: "Space Mono", monospace;
-            font-size: 0.78rem;
-            line-height: 1.8;
-            opacity: 0.55;
-            max-width: 44ch;
-            border-left: 4px solid #000;
-            padding-left: 1.25rem;
-            margin: 0;
-        }
-
-        /* ── RIGHT PANEL ────────────────────────────────── */
-        .docs-right {
-            background: #f5f0e8;
-            display: flex;
-            flex-direction: column;
-        }
-        .info-block {
-            padding: 1.5rem 1.25rem;
-            border-bottom: 4px solid #000;
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-            flex: 1;
-        }
-        .info-block:last-child {
-            border-bottom: none;
-        }
-        .info-label {
-            font-family: "Space Mono", monospace;
-            font-size: 0.58rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            opacity: 0.4;
-        }
-        .info-value {
-            font-family: "Bebas Neue", sans-serif;
-            font-size: 1.9rem;
-            letter-spacing: 0.06em;
-            line-height: 1;
-        }
-        .info-sub {
-            font-family: "Space Mono", monospace;
-            font-size: 0.58rem;
-            line-height: 1.6;
-            opacity: 0.4;
-        }
-
-        /* ── BOTTOM BAR ─────────────────────────────────── */
-        .docs-bottom {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            background: #f0e000;
-            border-top: 4px solid #000;
-        }
-        .docs-bottom-msg {
-            padding: 1rem 1.5rem;
-            font-family: "Space Mono", monospace;
-            font-size: 0.65rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            border-right: 4px solid #000;
-            display: flex;
-            align-items: center;
-        }
-        .docs-bottom-link {
-            padding: 1rem 1.5rem;
-            font-family: "Bebas Neue", sans-serif;
-            font-size: 1.1rem;
-            letter-spacing: 0.1em;
-            text-decoration: none;
-            color: #000;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            white-space: nowrap;
-            transition:
-                background 0.12s,
-                color 0.12s;
-        }
-        .docs-bottom-link:hover {
-            background: #000;
-            color: #f0e000;
-        }
-
-        /* ── TABLET  (≤ 900px) ──────────────────────────── */
-        @media (max-width: 900px) {
-            .docs-body {
-                grid-template-columns: 1fr 220px;
-            }
-            .docs-left {
-                padding: 3rem 2rem;
-            }
-            .info-value {
-                font-size: 1.5rem;
-            }
-        }
-
-        /* ── PHABLET / SMALL TABLET  (≤ 720px) ─────────── */
+        /* sidebar layout flip at 720px and 480px — complex enough to keep in CSS */
         @media (max-width: 720px) {
-            /* Status bar stacks vertically */
-            .status-bar {
-                grid-template-columns: 1fr;
-            }
-            .status-cell {
-                border-right: none;
-                border-bottom: 1px solid rgba(245, 240, 232, 0.2);
-            }
-            .status-cell:last-child {
-                border-bottom: none;
-            }
-
-            /* Body: single column, sidebar goes below */
-            .docs-body {
-                grid-template-columns: 1fr;
-            }
-            .docs-left {
-                padding: 2.5rem 1.5rem;
-                border-right: none;
-                border-bottom: 4px solid #000;
-            }
-
-            /* Sidebar becomes a horizontal strip of 3 cells */
             .docs-right {
                 flex-direction: row;
-                border-top: none;
             }
             .info-block {
-                flex: 1;
-                border-bottom: none;
+                border-bottom: none !important;
                 border-right: 4px solid #000;
-                padding: 1rem;
             }
             .info-block:last-child {
                 border-right: none;
             }
-            .info-value {
-                font-size: 1.4rem;
-            }
-
-            /* Bottom bar wraps */
-            .docs-bottom {
-                grid-template-columns: 1fr;
-            }
-            .docs-bottom-msg {
-                border-right: none;
-                border-bottom: 4px solid #000;
-            }
-            .docs-bottom-link {
-                justify-content: center;
-                padding: 0.85rem 1.5rem;
-            }
         }
-
-        /* ── MOBILE  (≤ 480px) ──────────────────────────── */
         @media (max-width: 480px) {
-            .docs-left {
-                padding: 2rem 1.25rem;
-                gap: 1.75rem;
-            }
-
-            /* Sidebar goes fully vertical again at narrow widths */
             .docs-right {
                 flex-direction: column;
             }
             .info-block {
-                border-right: none;
-                border-bottom: 4px solid #000;
+                border-right: none !important;
+                border-bottom: 4px solid #000 !important;
             }
             .info-block:last-child {
-                border-bottom: none;
-            }
-            .info-value {
-                font-size: 1.75rem;
-            }
-
-            /* Thinner stroke on title at very small sizes */
-            .coming-title .yl {
-                -webkit-text-stroke: 2px #000;
-            }
-
-            .coming-sub {
-                font-size: 0.72rem;
-            }
-        }
-
-        /* ── VERY SMALL  (≤ 360px) ──────────────────────── */
-        @media (max-width: 360px) {
-            .docs-left {
-                padding: 1.5rem 1rem;
-            }
-            .status-cell {
-                font-size: 0.55rem;
-                padding: 0.4rem 1rem;
-            }
-            .docs-bottom-msg {
-                font-size: 0.58rem;
-                padding: 0.75rem 1rem;
+                border-bottom: none !important;
             }
         }
     </style>
 
-    <main class="docs-page">
+    <main
+        class="grid grid-rows-[auto_1fr_auto] border-b-4 border-black"
+        style="min-height:calc(100vh - 8rem);"
+    >
         <!-- STATUS BAR -->
-        <div class="status-bar">
-            <div class="status-cell">
-                <span class="status-dot"></span>
+        <div
+            class="grid grid-cols-1 sm:grid-cols-3 bg-black text-[#f5f0e8] border-b-4 border-black"
+        >
+            <div
+                class="flex items-center gap-[0.6rem] px-5 py-2 text-[0.6rem] tracking-[0.2em] uppercase opacity-50 border-b border-[rgba(245,240,232,0.2)] sm:border-b-0 sm:border-r-4 sm:border-[#f5f0e8]"
+            >
+                <span
+                    class="status-dot w-[6px] h-[6px] rounded-full bg-[#f0e000] shrink-0"
+                ></span>
                 Status · In Progress
             </div>
-            <div class="status-cell">
-                <span class="status-dot"></span>
+            <div
+                class="flex items-center gap-[0.6rem] px-5 py-2 text-[0.6rem] tracking-[0.2em] uppercase opacity-50 border-b border-[rgba(245,240,232,0.2)] sm:border-b-0 sm:border-r-4 sm:border-[#f5f0e8]"
+            >
+                <span
+                    class="status-dot w-[6px] h-[6px] rounded-full bg-[#f0e000] shrink-0"
+                ></span>
                 Still gotta add doc comments lol
             </div>
-            <div class="status-cell">
-                <span class="status-dot"></span>
+            <div
+                class="flex items-center gap-[0.6rem] px-5 py-2 text-[0.6rem] tracking-[0.2em] uppercase opacity-50"
+            >
+                <span
+                    class="status-dot w-[6px] h-[6px] rounded-full bg-[#f0e000] shrink-0"
+                ></span>
                 Setting up Doxygen is a bitch
             </div>
         </div>
 
         <!-- BODY -->
-        <div class="docs-body">
+        <div
+            class="grid grid-cols-1 sm:grid-cols-[1fr_220px] lg:grid-cols-[1fr_280px]"
+        >
             <!-- LEFT -->
-            <div class="docs-left">
-                <div class="coming-label">
-                    <span class="coming-label-line"></span>
-                    <span class="coming-label-text">Documentation</span>
+            <div
+                class="docs-left flex flex-col justify-center gap-10 px-6 py-10 sm:px-8 sm:py-12 lg:px-14 lg:py-16 bg-[#f5f0e8] border-b-4 sm:border-b-0 sm:border-r-4 border-black"
+            >
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-1 bg-black block"></span>
+                    <span
+                        class="text-[0.65rem] tracking-[0.2em] uppercase opacity-50"
+                        >Documentation</span
+                    >
                 </div>
 
-                <h1 class="coming-title">
+                <h1
+                    class="coming-title font-[\'Bebas_Neue\',sans-serif] tracking-[0.03em] text-black m-0"
+                    style="font-family:'Bebas Neue',sans-serif;"
+                >
                     COM<span class="yl">ING</span><br />
                     SO<span class="yl">ON</span>
                 </h1>
 
-                <p class="coming-sub">
+                <p
+                    class="m-0 text-[0.78rem] leading-[1.8] opacity-55 max-w-[44ch] border-l-4 border-black pl-5"
+                    style="font-family:'Space Mono',monospace;"
+                >
                     We're writing the docs as we build the compiler — every
                     phase, every decision is documented in public. Check back
                     soon or follow along on GitHub.
                 </p>
             </div>
 
-            <!-- RIGHT -->
-            <div class="docs-right">
-                <div class="info-block">
-                    <span class="info-label">Phase</span>
-                    <span class="info-value">Lexer</span>
-                    <span class="info-sub">Tokenisation complete</span>
+            <!-- RIGHT sidebar -->
+            <div class="docs-right flex flex-col bg-[#f5f0e8]">
+                <div
+                    class="info-block flex flex-col gap-[0.4rem] flex-1 p-5 border-b-4 border-black"
+                >
+                    <span
+                        class="text-[0.58rem] tracking-[0.18em] uppercase opacity-40"
+                        style="font-family:'Space Mono',monospace;">Phase</span
+                    >
+                    <span
+                        class="text-[1.75rem] sm:text-[1.5rem] lg:text-[1.9rem] leading-none tracking-[0.06em]"
+                        style="font-family:'Bebas Neue',sans-serif;">Lexer</span
+                    >
+                    <span
+                        class="text-[0.58rem] leading-[1.6] opacity-40"
+                        style="font-family:'Space Mono',monospace;"
+                        >Tokenisation complete</span
+                    >
                 </div>
-                <div class="info-block">
-                    <span class="info-label">Coverage</span>
-                    <span class="info-value">12%</span>
-                    <span class="info-sub">Doc comments written</span>
+                <div
+                    class="info-block flex flex-col gap-[0.4rem] flex-1 p-5 border-b-4 border-black"
+                >
+                    <span
+                        class="text-[0.58rem] tracking-[0.18em] uppercase opacity-40"
+                        style="font-family:'Space Mono',monospace;"
+                        >Coverage</span
+                    >
+                    <span
+                        class="text-[1.75rem] sm:text-[1.5rem] lg:text-[1.9rem] leading-none tracking-[0.06em]"
+                        style="font-family:'Bebas Neue',sans-serif;">12%</span
+                    >
+                    <span
+                        class="text-[0.58rem] leading-[1.6] opacity-40"
+                        style="font-family:'Space Mono',monospace;"
+                        >Doc comments written</span
+                    >
                 </div>
-                <div class="info-block">
-                    <span class="info-label">Last push</span>
-                    <span class="info-value">2d ago</span>
-                    <span class="info-sub">Parser in progress</span>
+                <div class="info-block flex flex-col gap-[0.4rem] flex-1 p-5">
+                    <span
+                        class="text-[0.58rem] tracking-[0.18em] uppercase opacity-40"
+                        style="font-family:'Space Mono',monospace;"
+                        >Last push</span
+                    >
+                    <span
+                        class="text-[1.75rem] sm:text-[1.5rem] lg:text-[1.9rem] leading-none tracking-[0.06em]"
+                        style="font-family:'Bebas Neue',sans-serif;"
+                        >2d ago</span
+                    >
+                    <span
+                        class="text-[0.58rem] leading-[1.6] opacity-40"
+                        style="font-family:'Space Mono',monospace;"
+                        >Parser in progress</span
+                    >
                 </div>
             </div>
         </div>
 
         <!-- BOTTOM BAR -->
-        <div class="docs-bottom">
-            <div class="docs-bottom-msg">
+        <div
+            class="grid grid-cols-1 sm:grid-cols-[1fr_auto] bg-[#f0e000] border-t-4 border-black"
+        >
+            <div
+                class="flex items-center px-6 py-4 text-[0.65rem] tracking-[0.12em] uppercase border-b-4 sm:border-b-0 sm:border-r-4 border-black"
+                style="font-family:'Space Mono',monospace;"
+            >
                 In the meantime, check out the slides and our weekly meetings
                 for progress updates
             </div>
-            <a href="/slides" class="docs-bottom-link">View Slides →</a>
+            <a
+                href="/slides"
+                class="flex items-center justify-center gap-2 px-6 py-4 no-underline text-black whitespace-nowrap transition-colors duration-[120ms] hover:bg-black hover:text-[#f0e000]"
+                style="font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:0.1em;"
+                >View Slides →</a
+            >
         </div>
     </main>
 </Default>

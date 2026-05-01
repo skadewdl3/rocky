@@ -27,318 +27,135 @@ const entries = Object.entries(slides).map(([slug, meta]) => ({
 
 <Default>
     <style slot="styles">
-        /* ── Column header bar ── */
-        .col-header {
-            border-bottom: 4px solid #000;
-            display: grid;
-            grid-template-columns: 60px 1fr;
-            background: #000;
-            color: #f0e000;
-        }
-        .col-header-index {
-            border-right: 4px solid #f0e000;
-            padding: 0.5rem 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .col-header-title {
-            padding: 0.5rem 1.5rem;
-            display: flex;
-            align-items: center;
-        }
-        .col-header-label {
-            font-family: "Bebas Neue", sans-serif;
-            font-size: 0.85rem;
-            letter-spacing: 0.15em;
-        }
-
-        /* ── Slide card ── */
-        .slide-card {
-            display: grid;
-            grid-template-columns: 60px 1fr auto;
-            border-bottom: 4px solid #000;
-            transition: background 0.15s ease;
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
-        }
-        .slide-card:hover {
-            background: #f0e000;
-        }
-        .slide-card:hover .card-index {
-            background: #000;
-            color: #f0e000;
-        }
-        .slide-card:hover .arrow {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .card-index {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-right: 4px solid #000;
-            background: #f5f0e8;
-            font-family: "Bebas Neue", sans-serif;
-            font-size: 1.5rem;
-            letter-spacing: 0.05em;
-            color: #000;
-            padding: 1.25rem 0;
-            transition:
-                background 0.15s,
-                color 0.15s;
-            /* prevent shrinking on very small screens */
-            min-width: 60px;
-        }
-
-        .card-body {
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            /* prevent text overflow blowing layout */
-            min-width: 0;
-        }
-
+        /* clamp() font size — no Tailwind equivalent */
         .card-title {
-            font-family: "Bebas Neue", sans-serif;
             font-size: clamp(1.1rem, 4vw, 1.6rem);
-            letter-spacing: 0.06em;
             line-height: 1;
         }
-
-        .card-desc {
-            font-family: "Space Mono", monospace;
-            font-size: 0.68rem;
-            line-height: 1.55;
-            opacity: 0.6;
-            max-width: 56ch;
-            /* wrap long descriptions instead of overflowing */
-            overflow-wrap: break-word;
+        .empty-label {
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
         }
 
-        .card-meta {
-            margin-top: 0.25rem;
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
+        /* hover-child selectors — Tailwind can't target children on parent hover */
+        .slide-card:hover                { background: #f0e000; }
+        .slide-card:hover .card-index   { background: #000; color: #f0e000; }
+        .slide-card:hover .card-arrow   { opacity: 1; transform: translateX(0); }
 
-        .badge {
-            font-family: "Space Mono", monospace;
-            font-size: 0.6rem;
-            font-weight: 700;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            border: 2px solid #000;
-            padding: 2px 7px;
-            opacity: 0.55;
-            white-space: nowrap;
-        }
-
-        .badge-video {
-            opacity: 0.9;
-            background: #000;
-            color: #f0e000;
-            border-color: #000;
-        }
-
-        /* Arrow column — hidden on narrow screens */
+        /* arrow starts hidden/offset */
         .card-arrow {
-            display: flex;
-            align-items: center;
-            padding: 0 1.5rem;
-        }
-
-        .arrow {
-            font-family: "Bebas Neue", sans-serif;
-            font-size: 2rem;
             opacity: 0;
             transform: translateX(-6px);
-            transition:
-                opacity 0.15s,
-                transform 0.15s;
+            transition: opacity 0.15s, transform 0.15s;
         }
 
-        /* ── Empty state ── */
-        .empty-state {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            padding: 6rem 1.5rem;
-            opacity: 0.3;
-        }
-        .empty-state span {
-            font-family: "Bebas Neue", sans-serif;
-            font-size: clamp(1.5rem, 6vw, 2.5rem);
-            letter-spacing: 0.15em;
-        }
-
-        /* ── Ticker band ── */
-        @keyframes ticker {
-            from {
-                transform: translateX(0);
-            }
-            to {
-                transform: translateX(-50%);
-            }
-        }
-        .ticker-inner {
-            display: inline-flex;
-            gap: 0;
-            white-space: nowrap;
-            animation: ticker 24s linear infinite;
-        }
-        .ticker-item {
-            font-family: "Bebas Neue", sans-serif;
-            font-size: 0.85rem;
-            letter-spacing: 0.15em;
-            padding: 0 2rem;
-            opacity: 0.7;
-        }
-
-        /* ── Responsive ── */
-
-        /* Tablet: tighten card padding */
-        @media (max-width: 720px) {
-            .card-body {
-                padding: 1rem 1rem;
-            }
-            .card-arrow {
-                padding: 0 1rem;
-            }
-        }
-
-        /* Mobile: collapse arrow column, shrink index column */
+        /* mobile: inline arrow via ::after pseudo */
         @media (max-width: 520px) {
-            .slide-card {
-                grid-template-columns: 48px 1fr;
-            }
-            .card-index {
-                font-size: 1.1rem;
-                min-width: 48px;
-                padding: 1rem 0;
-            }
-            .col-header {
-                grid-template-columns: 48px 1fr;
-            }
-            /* Always show arrow (no hover intent on touch) */
-            .card-arrow {
-                display: none;
-            }
-            /* Reveal arrow inline on the card itself */
             .card-title::after {
                 content: " →";
-                font-family: "Bebas Neue", sans-serif;
                 opacity: 0.4;
-            }
-            .card-body {
-                padding: 0.9rem 0.9rem;
-            }
-            .card-desc {
-                font-size: 0.64rem;
-            }
-        }
-
-        /* Very small: tighter spacing */
-        @media (max-width: 360px) {
-            .card-body {
-                padding: 0.75rem 0.75rem;
-            }
-            .badge {
-                font-size: 0.55rem;
-                padding: 2px 5px;
             }
         }
     </style>
 
-    <main style="display:grid; grid-template-columns:1fr;">
-        <section style="display:flex; flex-direction:column;">
-            <!-- Column headers -->
-            <div class="col-header">
-                <div class="col-header-index">
-                    <span class="col-header-label">#</span>
+    <main class="grid grid-cols-1">
+        <section class="flex flex-col">
+
+            <!-- Column header bar -->
+            <div class="grid border-b-4 border-black bg-black text-[#f0e000]"
+                 style="grid-template-columns: 60px 1fr;">
+                <!-- on mobile shrink to 48px -->
+                <div class="flex items-center justify-center px-3 py-2 border-r-4 border-[#f0e000] min-w-[48px] sm:min-w-[60px]">
+                    <span class="tracking-[0.15em]" style="font-family:'Bebas Neue',sans-serif; font-size:0.85rem;">#</span>
                 </div>
-                <div class="col-header-title">
-                    <span class="col-header-label">Title / Description</span>
+                <div class="flex items-center px-4 sm:px-6 py-2">
+                    <span class="tracking-[0.15em]" style="font-family:'Bebas Neue',sans-serif; font-size:0.85rem;">Title / Description</span>
                 </div>
             </div>
 
+            <!-- Empty state -->
+            {entries.length === 0 && (
+                <div class="flex items-center justify-center flex-1 px-6 py-24 opacity-30">
+                    <span class="empty-label tracking-[0.15em]" style="font-family:'Bebas Neue',sans-serif;">
+                        No slides found
+                    </span>
+                </div>
+            )}
+
             <!-- Slide cards -->
-            {
-                entries.length === 0 ? (
-                    <div class="empty-state">
-                        <span>No slides found</span>
+            {entries.map((entry, i) => (
+                <div
+                    class="slide-card grid border-b-4 border-black cursor-pointer transition-colors duration-[150ms]"
+                    style="grid-template-columns: 48px 1fr auto;"
+                    data-url={entry.href}
+                >
+                    <!-- Index -->
+                    <div
+                        class="card-index flex items-center justify-center border-r-4 border-black bg-[#f5f0e8] py-5 tracking-[0.05em] transition-colors duration-[150ms] min-w-[48px] sm:min-w-[60px] text-lg sm:text-2xl"
+                        style="font-family:'Bebas Neue',sans-serif;"
+                    >
+                        {(i + 1).toString().padStart(2, "0")}
                     </div>
-                ) : (
-                    entries.map((entry, i) => (
-                        <div class="slide-card" data-url={entry.href}>
-                            <div class="card-index">
-                                {(i + 1).toString().padStart(2, "0")}
-                            </div>
 
-                            <div class="card-body">
-                                <div class="card-title">{entry.title}</div>
-                                {entry.description && (
-                                    <div class="card-desc">
-                                        {entry.description}
-                                    </div>
-                                )}
-                                <div class="card-meta">
-                                    <span class="badge">PDF</span>
-                                    {entry.date && (
-                                        <span class="badge">{entry.date}</span>
-                                    )}
-                                    {entry.video && (
-                                        <span
-                                            class="badge badge-video"
-                                            data-url={entry.video}
-                                        >
-                                            ▶ Video
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+                    <!-- Body -->
+                    <div class="flex flex-col gap-[0.35rem] min-w-0 px-4 py-4 sm:px-6 sm:py-5">
+                        <div
+                            class="card-title tracking-[0.06em]"
+                            style="font-family:'Bebas Neue',sans-serif;"
+                        >{entry.title}</div>
 
-                            <div class="card-arrow">
-                                <span class="arrow">→</span>
-                            </div>
+                        {entry.description && (
+                            <div
+                                class="text-[0.68rem] leading-[1.55] opacity-60 max-w-[56ch] break-words"
+                                style="font-family:'Space Mono',monospace;"
+                            >{entry.description}</div>
+                        )}
+
+                        <div class="flex flex-wrap gap-2 mt-1">
+                            <span class="text-[0.6rem] font-bold tracking-[0.18em] uppercase border-2 border-black px-[7px] py-[2px] opacity-55 whitespace-nowrap"
+                                  style="font-family:'Space Mono',monospace;">PDF</span>
+                            {entry.date && (
+                                <span class="text-[0.6rem] font-bold tracking-[0.18em] uppercase border-2 border-black px-[7px] py-[2px] opacity-55 whitespace-nowrap"
+                                      style="font-family:'Space Mono',monospace;">{entry.date}</span>
+                            )}
+                            {entry.video && (
+                                <span
+                                    class="badge-video text-[0.6rem] font-bold tracking-[0.18em] uppercase bg-black text-[#f0e000] border-2 border-black px-[7px] py-[2px] whitespace-nowrap cursor-pointer"
+                                    style="font-family:'Space Mono',monospace;"
+                                    data-url={entry.video}
+                                >▶ Video</span>
+                            )}
                         </div>
-                    ))
-                )
-            }
+                    </div>
+
+                    <!-- Arrow (hidden on mobile via parent grid shrinking) -->
+                    <div class="hidden sm:flex items-center px-6">
+                        <span class="card-arrow" style="font-family:'Bebas Neue',sans-serif; font-size:2rem;">→</span>
+                    </div>
+                </div>
+            ))}
+
         </section>
     </main>
 
     <!-- Ticker -->
-    <div
-        slot="footer"
-        style="border-top:4px solid #000; border-bottom:4px solid #000; overflow:hidden; padding:0.5rem 0; background:#f0e000;"
-    >
+    <div slot="footer" class="border-t-4 border-b-4 border-black overflow-hidden py-2 bg-[#f0e000]">
         <div class="ticker-inner">
-            {
-                [...entries, ...entries].map((e) => (
-                    <span class="ticker-item">{e.title} ░</span>
-                ))
-            }
+            {[...entries, ...entries].map((e) => (
+                <span
+                    class="px-8 opacity-70 tracking-[0.15em]"
+                    style="font-family:'Bebas Neue',sans-serif; font-size:0.85rem;"
+                >{e.title} ░</span>
+            ))}
         </div>
     </div>
 
     <script>
-        for (const card of Array.from(
-            document.getElementsByClassName("slide-card"),
-        )) {
+        for (const card of Array.from(document.getElementsByClassName("slide-card"))) {
             card.addEventListener("click", () => {
                 window.open((card as HTMLElement).dataset.url, "_blank");
             });
         }
-
-        for (const badge of Array.from(
-            document.getElementsByClassName("badge-video"),
-        )) {
+        for (const badge of Array.from(document.getElementsByClassName("badge-video"))) {
             badge.addEventListener("click", (e) => {
                 window.open((badge as HTMLElement).dataset.url, "_blank");
                 e.stopPropagation();

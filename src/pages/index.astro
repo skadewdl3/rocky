@@ -4,128 +4,27 @@ import Default from "../layouts/Default.astro";
 
 <Default>
     <style slot="styles">
-        /* ── Hero ── */
-        .hero {
-            display: grid;
-            grid-template-rows: auto 1fr auto;
-            min-height: calc(100vh - 8rem);
-            border-bottom: 4px solid #000;
-        }
-
-        /* Top bar */
-        .hero-topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            grid-template-columns: auto;
-            border-bottom: 4px solid #000;
-            background: #000;
-            color: #f0e000;
-        }
-        .hero-topbar-cell {
-            padding: 0.55rem 1.25rem;
-            display: flex;
-            align-items: center;
-            font-family: "Space Mono", monospace;
-            font-size: 0.65rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            opacity: 0.75;
-        }
-        .hero-topbar-cell:last-child {
-            border-right: none;
-        }
-
-        /* Main body */
-        .hero-body {
-            display: grid;
-            grid-template-columns: 1fr 220px;
-            border-bottom: 4px solid #000;
-        }
-
-        .hero-left {
-            padding: 4rem 3.5rem 3.5rem;
-            border-right: 4px solid #000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 2rem;
-            background: #f5f0e8;
-        }
-
-        .hero-eyebrow {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .eyebrow-line {
-            width: 36px;
-            height: 4px;
-            background: #000;
-            flex-shrink: 0;
-        }
-        .eyebrow-text {
-            font-family: "Space Mono", monospace;
-            font-size: 0.65rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            opacity: 0.55;
-        }
-
+        /* clamp() — no Tailwind equivalent */
         .hero-title {
-            font-family: "Bebas Neue", sans-serif;
             font-size: clamp(5rem, 12vw, 9rem);
             line-height: 0.9;
-            letter-spacing: 0.04em;
-            color: #000;
         }
+
+        /* paint-order stroke — no Tailwind equivalent */
         .hero-title .accent {
             color: #f0e000;
             -webkit-text-stroke: 3px #000;
+            paint-order: stroke fill;
+        }
+        @media (max-width: 480px) {
+            .hero-title .accent {
+                -webkit-text-stroke: 2px #000;
+            }
         }
 
-        .hero-tagline {
-            font-family: "Space Mono", monospace;
-            font-size: 0.8rem;
-            line-height: 1.75;
-            opacity: 0.65;
-            max-width: 48ch;
-            border-left: 4px solid #000;
-            padding-left: 1.25rem;
-        }
-
-        /* CTA buttons */
-        .hero-cta {
-            display: flex;
-            gap: 0;
-            margin-top: 1rem;
-        }
-        .btn {
-            font-family: "Bebas Neue", sans-serif;
-            font-size: 1.3rem;
-            letter-spacing: 0.1em;
-            padding: 0.8rem 2rem;
-            border: 4px solid #000;
-            text-decoration: none;
-            transition:
-                background 0.12s,
-                color 0.12s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-        }
-        .btn-primary {
-            background: #000;
-            color: #f0e000;
-            margin-right: -4px;
-        }
+        /* hover-child selectors on .btn variants */
         .btn-primary:hover {
             background: #f0e000;
-            color: #000;
-        }
-        .btn-secondary {
-            background: #f5f0e8;
             color: #000;
         }
         .btn-secondary:hover {
@@ -133,66 +32,7 @@ import Default from "../layouts/Default.astro";
             color: #f5f0e8;
         }
 
-        /* Right sidebar panel */
-        .hero-right {
-            display: flex;
-            flex-direction: column;
-            background: #f5f0e8;
-        }
-        .stat-block {
-            padding: 1.5rem 1.25rem;
-            border-bottom: 4px solid #000;
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            flex: 1;
-        }
-        .stat-block:last-child {
-            border-bottom: none;
-        }
-        .stat-label {
-            font-family: "Space Mono", monospace;
-            font-size: 0.58rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            opacity: 0.45;
-        }
-        .stat-value {
-            font-family: "Bebas Neue", sans-serif;
-            font-size: 2.2rem;
-            letter-spacing: 0.05em;
-            line-height: 1;
-        }
-        .stat-sub {
-            font-family: "Space Mono", monospace;
-            font-size: 0.6rem;
-            opacity: 0.45;
-            line-height: 1.5;
-        }
-
-        /* Bottom bar */
-        .hero-bottom {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            background: #000;
-            color: #f5f0e8;
-        }
-        .bottom-cell {
-            padding: 1rem 1.5rem;
-            border-right: 4px solid #f5f0e8;
-            font-family: "Space Mono", monospace;
-            font-size: 0.62rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            opacity: 0.5;
-            display: flex;
-            align-items: center;
-        }
-        .bottom-cell:last-child {
-            border-right: none;
-        }
-
-        /* ── Ticker band ── */
+        /* ticker keyframe */
         @keyframes ticker {
             from {
                 transform: translateX(0);
@@ -203,83 +43,154 @@ import Default from "../layouts/Default.astro";
         }
         .ticker-inner {
             display: inline-flex;
-            gap: 0;
             white-space: nowrap;
             animation: ticker 20s linear infinite;
         }
-
-        /* Responsive */
-        @media (max-width: 720px) {
-            .hero-body {
-                grid-template-columns: 1fr;
-            }
-            .hero-right {
-                display: none;
-            }
-            .hero-left {
-                padding: 2.5rem 1.5rem 2.5rem;
-            }
-            .hero-bottom {
-                grid-template-columns: 1fr;
-            }
-            .bottom-cell {
-                border-right: none;
-                border-bottom: 2px solid #f5f0e8;
-            }
-        }
     </style>
 
-    <main class="hero">
+    <main
+        class="grid grid-rows-[auto_1fr_auto] border-b-4 border-black"
+        style="min-height:calc(100vh - 8rem);"
+    >
         <!-- TOP BAR -->
-        <div class="hero-topbar">
-            <div class="hero-topbar-cell">
+        <div
+            class="flex items-center justify-between bg-black text-[#f0e000] border-b-4 border-black px-5 py-[0.55rem]"
+        >
+            <span
+                class="text-[0.65rem] tracking-[0.15em] uppercase opacity-75"
+                style="font-family:'Space Mono',monospace;"
+            >
                 An experiment for the VIT OSS Systems Community
-            </div>
+            </span>
         </div>
 
         <!-- BODY -->
-        <div class="hero-body">
+        <div
+            class="grid grid-cols-1 sm:grid-cols-[1fr_220px] border-b-4 border-black"
+        >
             <!-- LEFT -->
-            <div class="hero-left">
-                <div class="hero-eyebrow">
-                    <div class="eyebrow-line"></div>
-                    <span class="eyebrow-text">Open Source · JIT Compiler</span>
+            <div
+                class="flex flex-col justify-center gap-8 px-6 py-10 sm:px-14 sm:py-16 bg-[#f5f0e8] border-b-4 sm:border-b-0 sm:border-r-4 border-black"
+            >
+                <!-- Eyebrow -->
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-1 bg-black shrink-0 block"></span>
+                    <span
+                        class="text-[0.65rem] tracking-[0.2em] uppercase opacity-55"
+                        style="font-family:'Space Mono',monospace;"
+                    >
+                        Open Source · JIT Compiler
+                    </span>
                 </div>
 
-                <h1 class="hero-title">
+                <!-- Title -->
+                <h1
+                    class="hero-title font-normal tracking-[0.04em] text-black m-0"
+                    style="font-family:'Bebas Neue',sans-serif;"
+                >
                     ROC<span class="accent">KY</span>
                 </h1>
 
-                <p class="hero-tagline">
-                    A LLVM ORCJIT-based JIT compiler built together - open,
+                <!-- Tagline -->
+                <p
+                    class="m-0 text-[0.8rem] leading-[1.75] opacity-65 max-w-[48ch] border-l-4 border-black pl-5"
+                    style="font-family:'Space Mono',monospace;"
+                >
+                    A LLVM ORCJIT-based JIT compiler built together — open,
                     transparent, and documented from first principles.
                 </p>
 
-                <div class="hero-cta">
-                    <a href="/docs" class="btn btn-primary"> Read Docs → </a>
-                    <a href="/slides" class="btn btn-secondary">
-                        View Slides ░
-                    </a>
+                <!-- CTA -->
+                <div class="flex mt-4">
+                    <a
+                        href="/docs"
+                        class="btn-primary inline-flex items-center gap-2 px-8 py-[0.8rem] border-4 border-black no-underline bg-black text-[#f0e000] transition-colors duration-[120ms] -mr-1"
+                        style="font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:0.1em;"
+                        >Read Docs →</a
+                    >
+                    <a
+                        href="/slides"
+                        class="btn-secondary inline-flex items-center gap-2 px-8 py-[0.8rem] border-4 border-black no-underline bg-[#f5f0e8] text-black transition-colors duration-[120ms]"
+                        style="font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:0.1em;"
+                        >View Slides ░</a
+                    >
                 </div>
             </div>
 
-            <!-- RIGHT SIDEBAR -->
-            <div class="hero-right">
-                <div class="stat-block">
-                    <span class="stat-label">Type</span>
-                    <span class="stat-value">JIT</span>
-                    <span class="stat-sub">Just-In-Time<br />Compiler</span>
+            <!-- RIGHT SIDEBAR (hidden on mobile) -->
+            <div class="hidden sm:flex flex-col bg-[#f5f0e8]">
+                <div
+                    class="flex flex-col gap-[0.35rem] flex-1 p-5 border-b-4 border-black"
+                >
+                    <span
+                        class="text-[0.58rem] tracking-[0.18em] uppercase opacity-45"
+                        style="font-family:'Space Mono',monospace;">Type</span
+                    >
+                    <span
+                        class="text-[2.2rem] leading-none tracking-[0.05em]"
+                        style="font-family:'Bebas Neue',sans-serif;">JIT</span
+                    >
+                    <span
+                        class="text-[0.6rem] leading-[1.5] opacity-45"
+                        style="font-family:'Space Mono',monospace;"
+                        >Just-In-Time<br />Compiler</span
+                    >
                 </div>
-                <div class="stat-block">
-                    <span class="stat-label">Built</span>
-                    <span class="stat-value">Open</span>
-                    <span class="stat-sub">Source-first<br />development</span>
+                <div
+                    class="flex flex-col gap-[0.35rem] flex-1 p-5 border-b-4 border-black"
+                >
+                    <span
+                        class="text-[0.58rem] tracking-[0.18em] uppercase opacity-45"
+                        style="font-family:'Space Mono',monospace;">Built</span
+                    >
+                    <span
+                        class="text-[2.2rem] leading-none tracking-[0.05em]"
+                        style="font-family:'Bebas Neue',sans-serif;">Open</span
+                    >
+                    <span
+                        class="text-[0.6rem] leading-[1.5] opacity-45"
+                        style="font-family:'Space Mono',monospace;"
+                        >Source-first<br />development</span
+                    >
                 </div>
-                <div class="stat-block">
-                    <span class="stat-label">License</span>
-                    <span class="stat-value">MIT</span>
-                    <span class="stat-sub">Free to use<br />& modify</span>
+                <div class="flex flex-col gap-[0.35rem] flex-1 p-5">
+                    <span
+                        class="text-[0.58rem] tracking-[0.18em] uppercase opacity-45"
+                        style="font-family:'Space Mono',monospace;"
+                        >License</span
+                    >
+                    <span
+                        class="text-[2.2rem] leading-none tracking-[0.05em]"
+                        style="font-family:'Bebas Neue',sans-serif;">MIT</span
+                    >
+                    <span
+                        class="text-[0.6rem] leading-[1.5] opacity-45"
+                        style="font-family:'Space Mono',monospace;"
+                        >Free to use<br />&amp; modify</span
+                    >
                 </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM BAR -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 bg-black text-[#f5f0e8]">
+            <div
+                class="flex items-center px-6 py-4 text-[0.62rem] tracking-[0.12em] uppercase opacity-50 border-b-2 sm:border-b-0 sm:border-r-4 border-[#f5f0e8]"
+                style="font-family:'Space Mono',monospace;"
+            >
+                LLVM OrcJIT backend
+            </div>
+            <div
+                class="flex items-center px-6 py-4 text-[0.62rem] tracking-[0.12em] uppercase opacity-50 border-b-2 sm:border-b-0 sm:border-r-4 border-[#f5f0e8]"
+                style="font-family:'Space Mono',monospace;"
+            >
+                Built in public
+            </div>
+            <div
+                class="flex items-center px-6 py-4 text-[0.62rem] tracking-[0.12em] uppercase opacity-50"
+                style="font-family:'Space Mono',monospace;"
+            >
+                VIT OSS Systems Community
             </div>
         </div>
     </main>
