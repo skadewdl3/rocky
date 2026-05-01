@@ -1,3 +1,9 @@
+/**
+ * @file debug.c
+ * @brief Diagnostic formatting and AST pretty-printers.
+ * @ingroup Debug
+ */
+
 #include <rocky/debug.h>
 #include <stdio.h>
 #include <inttypes.h>
@@ -20,9 +26,7 @@ static int use_color(void) {
 }
 #endif
 
-
-#include <rocky/debug.h>
-
+/** @copydoc token_type_str */
 const char* token_type_str(TokenKind type) {
     switch (type) {
         /*  Literals  */
@@ -51,6 +55,7 @@ const char* token_type_str(TokenKind type) {
     }
 }
 
+/** @copydoc print_token */
 void print_token(Token* token, TokenPrintFlags flags) {
     //Null guard
     if (!token) {
@@ -91,6 +96,7 @@ void print_token(Token* token, TokenPrintFlags flags) {
     printf("\n");
 }
 
+/** @copydoc unary_op_str */
 const char* unary_op_str(UnaryOp op) {
     switch (op) {
         case UNOP_NEG: return "-";
@@ -100,6 +106,7 @@ const char* unary_op_str(UnaryOp op) {
     }
 }
 
+/** @copydoc datatype_str */
 const char* datatype_str(TypeKind t) {
     switch (t) {
         case TYPE_INT: return "int";
@@ -110,6 +117,7 @@ const char* datatype_str(TypeKind t) {
     }
 }
 
+/** @copydoc binary_op_str */
 const char* binary_op_str(BinaryOp op) {
     switch (op) {
         
@@ -143,22 +151,7 @@ const char* binary_op_str(BinaryOp op) {
     }
 }
 
-/*
- * Recursively prints child nodes of an AST node in a tree structure.
- *
- * This function ensures correct ASCII tree formatting by propagating
- * depth and sibling bitmask information to all child nodes.
- *
- * The sibling bitmask is used to determine whether ancestor levels
- * should draw vertical connectors (│) or spaces, so that the tree
- * structure remains visually consistent across branches.
- *
- * Parameters:
- *  - children: array of child expressions
- *  - count: number of children
- *  - depth: current depth in the AST
- *  - sibling: bitmask tracking which ancestor levels were last children
- */
+/** @brief Recursively prints a list of child expressions in tree form. */
 void print_children(const Expr** children, int count, int depth, int sibling) {
     for (int i = 0; i < count; i++) {
         int isLast = (i == count - 1);
@@ -167,15 +160,7 @@ void print_children(const Expr** children, int count, int depth, int sibling) {
     }
 }
 
-/*
- * Prints an AST node as an ASCII tree.
- *
- * The core idea is the use of a "sibling bitmask":
- * each bit represents whether a node at a given depth was the last child.
- *
- * If a bit is set, we print spaces instead of vertical lines (│),
- * ensuring correct tree visualization across multiple branches.
- */
+/** @copydoc print_expr */
 void print_expr(const Expr* expr, int depth, int isLast, int sibling) {
     //Null guard
     if (!expr) {

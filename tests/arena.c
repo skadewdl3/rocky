@@ -1,10 +1,19 @@
+/**
+ * @file arena.c
+ * @brief Unit tests for arena allocator.
+ * @ingroup Tests
+ */
+
 #include "unity.h"
 #include <rocky/arena.h>
 #include <stdint.h>
 
+/** @brief Unity setup hook. */
 void setUp(void) {}
+/** @brief Unity teardown hook. */
 void tearDown(void) {}
 
+/** @brief Verifies initial arena state after initialization. */
 void test_arena_init(void) {
     Arena arena;
     arena_init(&arena, 1024);
@@ -16,6 +25,7 @@ void test_arena_init(void) {
     arena_free(&arena);
 }
 
+/** @brief Verifies basic allocation and bounds. */
 void test_arena_alloc_basic(void) {
     Arena arena;
     arena_init(&arena, 1024);
@@ -31,6 +41,7 @@ void test_arena_alloc_basic(void) {
     arena_free(&arena);
 }
 
+/** @brief Verifies 8-byte allocation alignment. */
 void test_arena_alignment(void) {
     Arena arena;
     arena_init(&arena, 1024);
@@ -48,6 +59,7 @@ void test_arena_alignment(void) {
     arena_free(&arena);
 }
 
+/** @brief Verifies contiguity across sequential allocations. */
 void test_arena_multiple_allocs(void) {
     Arena arena;
     arena_init(&arena, 1024);
@@ -67,6 +79,7 @@ void test_arena_multiple_allocs(void) {
     arena_free(&arena);
 }
 
+/** @brief Verifies arena reset behavior on free. */
 void test_arena_free(void) {
     Arena arena;
     arena_init(&arena, 1024);
@@ -78,6 +91,7 @@ void test_arena_free(void) {
     TEST_ASSERT_EQUAL(0, arena.cap);
 }
 
+/** @brief Test runner entry point. */
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_arena_init);

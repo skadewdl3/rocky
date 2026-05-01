@@ -13,6 +13,7 @@ clean = "rm -r build"
 compile = { cmd = "cmake --build build", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build -L {{ label }}", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
 lit = { cmd = "ctest --test-dir build -L \"lit/{{ label }}\"", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
+docs = { cmd = "bash -lc 'if [ \"{{ format }}\" = \"html\" ]; then doxygen - <<\"EOF\"\nINPUT = ./include ./src\nRECURSIVE = YES\nOUTPUT_DIRECTORY = docs\nEXCLUDE_PATTERNS = */external/*\nGENERATE_HTML = YES\nGENERATE_XML = NO\nGENERATE_LATEX = NO\nEOF\nelif [ \"{{ format }}\" = \"sml\" ] || [ \"{{ format }}\" = \"xml\" ]; then doxygen - <<\"EOF\"\nINPUT = ./include ./src\nRECURSIVE = YES\nOUTPUT_DIRECTORY = docs\nEXCLUDE_PATTERNS = */external/*\nGENERATE_HTML = NO\nGENERATE_XML = YES\nGENERATE_LATEX = NO\nEOF\nelse echo \"invalid format: {{ format }} (use html or sml)\"; exit 2; fi'", args = [{ arg = "format", default = "html" }] }
 
 # Windows auto-installs and uses msvc
 [target.win-64.tasks]
@@ -25,6 +26,7 @@ clean = "cmd /C rmdir /S /Q %PIXI_PROJECT_ROOT%\\build"
 compile = { cmd = "cmd /C cmake --build build", depends-on = ["configure"] }
 test = { cmd = "cmd /C ctest --test-dir build -L {{ label }}", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
 lit = { cmd = "cmd /C ctest --test-dir build -L \"lit/{{ label }}\"", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
+docs = { cmd = "cmd /C if /I \"{{ format }}\"==\"html\" (echo INPUT = ./include ./src && echo RECURSIVE = YES && echo OUTPUT_DIRECTORY = docs && echo EXCLUDE_PATTERNS = */external/* && echo GENERATE_HTML = YES && echo GENERATE_XML = NO && echo GENERATE_LATEX = NO) | doxygen - else if /I \"{{ format }}\"==\"sml\" (echo INPUT = ./include ./src && echo RECURSIVE = YES && echo OUTPUT_DIRECTORY = docs && echo EXCLUDE_PATTERNS = */external/* && echo GENERATE_HTML = NO && echo GENERATE_XML = YES && echo GENERATE_LATEX = NO) | doxygen - else if /I \"{{ format }}\"==\"xml\" (echo INPUT = ./include ./src && echo RECURSIVE = YES && echo OUTPUT_DIRECTORY = docs && echo EXCLUDE_PATTERNS = */external/* && echo GENERATE_HTML = NO && echo GENERATE_XML = YES && echo GENERATE_LATEX = NO) | doxygen - else (echo invalid format: {{ format }} ^(use html or sml^) && exit /b 2)", args = [{ arg = "format", default = "html" }] }
 
 [dependencies]
 cmake = ">=4.3.1,<5"
@@ -35,6 +37,7 @@ ninja = ">=1.13.2,<2"
 python = ">=3.10,<4"
 lit = ">=18,<19"
 llvm-tools = ">=22.1.3,<23"
+doxygen = ">=1.13.2,<2"
 
 [target.linux-64.dependencies]
 clang   = ">=22.1.3,<23"

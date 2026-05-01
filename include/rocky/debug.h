@@ -1,11 +1,16 @@
+/**
+ * @file debug.h
+ * @brief Diagnostic tools and AST printers.
+ * @ingroup Debug
+ */
+
 #ifndef ROCKY_DEBUG_DEBUG_H
 #define ROCKY_DEBUG_DEBUG_H
 
-/* Importing structs and enums for Token and AST Nodes */
 #include <rocky/lexer/token.h>
 #include <rocky/parser/ast.h>
 
-/* Bitmask enum for conditional printing of tokens */
+/** @brief Bitmask controlling which token fields are printed. */
 typedef enum {
     TOK_PRINT_FLAG_KIND = 1 << 0,
     TOK_PRINT_FLAG_LEXEME = 1 << 1,
@@ -14,33 +19,31 @@ typedef enum {
     TOK_PRINT_ALL = 0xF,
 } TokenPrintFlags;
 
-/* Convert TokenKind enum to a human-readable string. */
+/** @brief Converts token kind to display string. */
 const char* token_type_str(TokenKind type);
 
-/* Convert UnaryOp enum to a human-readable string. */
+/** @brief Converts unary operator to display string. */
 const char* unary_op_str(UnaryOp op);
 
-/* Convert TypeKind enum to a human-readable string. */
+/** @brief Converts type kind to display string. */
 const char* datatype_str(TypeKind t);
 
-/* Convert BinaryOP enum to a human-readable string. */
+/** @brief Converts binary operator to display string. */
 const char* binary_op_str(BinaryOp op);
 
-/* Diagnostic printer for lexer
- * Params:
- * 1.token: pointer to the token struct.
- * 2.flags: bitmask specifying which fields to print (KIND, LEXEME, LINE, COL).
- * * Sample usage: print_token(token, TOK_PRINT_FLAG_KIND | TOK_PRINT_FLAG_LINE) will print the token type and its line.
- * */
+/**
+ * @brief Prints token diagnostics.
+ * @param token Token to print.
+ * @param flags Print-field bitmask.
+ */
 void print_token(Token* token, TokenPrintFlags flags);
 
-/* Diagnostic printer for AST nodes
- * Params:
- * 1. expr: pointer to the Expr struct.
- * 2. depth: level of the current Expr in AST node hierarchy.
- * 3. isLast: non-zero if this node is the last child of its parent.
- * 4. sibling: bitmask tracking which ancestor levels were the last child, used for drawing tree branches correctly.
- * Sample Usage: printExpr(expr, 0, 1, 0);
- * */
+/**
+ * @brief Prints an expression tree using ASCII connectors.
+ * @param expr Root expression to print.
+ * @param depth Current depth in the recursion.
+ * @param isLast Non-zero if node is last child at its level.
+ * @param sibling Bitmask describing ancestor sibling structure.
+ */
 void print_expr(const Expr* expr, int depth, int isLast, int sibling);
 #endif

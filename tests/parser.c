@@ -1,3 +1,9 @@
+/**
+ * @file parser.c
+ * @brief Unit tests for Pratt parser behavior and precedence.
+ * @ingroup Tests
+ */
+
 #include "unity.h"
 #include <rocky/parser/parser.h>
 #include <rocky/debug.h>
@@ -6,16 +12,19 @@
 
 static Arena arena;
 
+/** @brief Shared test arena setup. */
 void setUp(void) {
     arena_init(&arena, 4096);
 }
 
+/** @brief Shared test arena teardown. */
 void tearDown(void) {
     arena_free(&arena);
 }
 
 /* ── token builder helpers ───────────────────────────────── */
 
+/** @brief Builds an integer token with owned lexeme storage. */
 static Token tok_int(long long v) {
     char *buf = arena_alloc(&arena, 32);
     snprintf(buf, 32, "%lld", v);
@@ -27,6 +36,7 @@ static Token tok_int(long long v) {
     return t;
 }
 
+/** @brief Builds a float token with owned lexeme storage. */
 static Token tok_float(double v) {
     char *buf = arena_alloc(&arena, 32);
     snprintf(buf, 32, "%g", v);
@@ -38,6 +48,7 @@ static Token tok_float(double v) {
     return t;
 }
 
+/** @brief Builds an operator token with default source location. */
 static Token tok_op(TokenKind type) {
     Token t = {0};
     t.type   = type;
@@ -45,6 +56,7 @@ static Token tok_op(TokenKind type) {
     return t;
 }
 
+/** @brief Builds an identifier token from static string data. */
 static Token tok_ident(const char *name) {
     Token t = {0};
     t.type   = TOKEN_IDENTIFIER;
@@ -54,6 +66,7 @@ static Token tok_ident(const char *name) {
     return t;
 }
 
+/** @brief Builds an EOF token sentinel. */
 static Token tok_eof(void) {
     Token t = {0};
     t.type = TOKEN_EOF;
@@ -62,6 +75,7 @@ static Token tok_eof(void) {
 
 /* ── run one test ────────────────────────────────────────── */
 
+/** @brief Parses a token buffer into one expression root. */
 static Expr* parse_tokens(Token *tokens, int len) {
     Parser p;
     parser_init(&p, tokens, len, &arena);
@@ -70,6 +84,7 @@ static Expr* parse_tokens(Token *tokens, int len) {
 
 /* ── tests ───────────────────────────────────────────────── */
 
+/** @brief Verifies literal expression parsing. */
 void test_parser_literals(void) {
     Token toks_int[] = { tok_int(42), tok_eof() };
     Expr *e_int = parse_tokens(toks_int, 2);
@@ -92,6 +107,7 @@ void test_parser_literals(void) {
     TEST_ASSERT_EQUAL(0, e_false->as.bval);
 }
 
+/** @brief Verifies unary operator parsing. */
 void test_parser_unary(void) {
     Token toks_neg[] = { tok_op(TOKEN_MINUS), tok_int(1), tok_eof() };
     Expr *e_neg = parse_tokens(toks_neg, 3);
@@ -109,6 +125,7 @@ void test_parser_unary(void) {
     TEST_ASSERT_EQUAL(UNOP_BITNOT, e_bitnot->as.unary.op);
 }
 
+/** @brief Verifies arithmetic binary operator mapping. */
 void test_parser_binary_arithmetic(void) {
     TokenKind ops[] = { TOKEN_PLUS, TOKEN_MINUS, TOKEN_STAR, TOKEN_SLASH, TOKEN_PERCENT };
     BinaryOp bops[] = { BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD };
@@ -121,6 +138,7 @@ void test_parser_binary_arithmetic(void) {
     }
 }
 
+/** @brief Verifies comparison operator mapping. */
 void test_parser_binary_comparison(void) {
     TokenKind ops[] = { TOKEN_EQEQ, TOKEN_BANGEQ, TOKEN_LT, TOKEN_GT, TOKEN_LTEQ, TOKEN_GTEQ };
     BinaryOp bops[] = { BINOP_EQ, BINOP_NEQ, BINOP_LT, BINOP_GT, BINOP_LE, BINOP_GE };
@@ -133,6 +151,7 @@ void test_parser_binary_comparison(void) {
     }
 }
 
+/** @brief Verifies bitwise operator mapping. */
 void test_parser_binary_bitwise(void) {
     TokenKind ops[] = { TOKEN_AMP, TOKEN_PIPE, TOKEN_CARET, TOKEN_LSHIFT, TOKEN_RSHIFT };
     BinaryOp bops[] = { BINOP_BAND, BINOP_BOR, BINOP_BXOR, BINOP_SHL, BINOP_SHR };
@@ -145,6 +164,7 @@ void test_parser_binary_bitwise(void) {
     }
 }
 
+/** @brief Verifies logical operator mapping. */
 void test_parser_binary_logical(void) {
     Token toks_and[] = { tok_ident("a"), tok_op(TOKEN_AMPAMP), tok_ident("b"), tok_eof() };
     Expr *e_and = parse_tokens(toks_and, 4);
@@ -157,6 +177,7 @@ void test_parser_binary_logical(void) {
     TEST_ASSERT_EQUAL(BINOP_OR, e_or->as.binary.op);
 }
 
+/** @brief Verifies precedence of multiplicative over additive ops. */
 void test_parser_precedence(void) {
     // 1 + 2 * 3  => 1 + (2 * 3)
     Token toks[] = { tok_int(1), tok_op(TOKEN_PLUS), tok_int(2), tok_op(TOKEN_STAR), tok_int(3), tok_eof() };
@@ -167,6 +188,7 @@ void test_parser_precedence(void) {
     TEST_ASSERT_EQUAL(BINOP_MUL, e->as.binary.rhs->as.binary.op);
 }
 
+/** @brief Verifies explicit grouping with parentheses. */
 void test_parser_grouping(void) {
     // (1 + 2) * 3
     Token toks[] = { tok_op(TOKEN_LPAREN), tok_int(1), tok_op(TOKEN_PLUS), tok_int(2), tok_op(TOKEN_RPAREN), tok_op(TOKEN_STAR), tok_int(3), tok_eof() };
@@ -177,6 +199,7 @@ void test_parser_grouping(void) {
     TEST_ASSERT_EQUAL(BINOP_ADD, e->as.binary.lhs->as.binary.op);
 }
 
+/** @brief Test runner entry point. */
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_parser_literals);

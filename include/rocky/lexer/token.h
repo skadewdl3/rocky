@@ -1,3 +1,10 @@
+/**
+ * @file token.h
+ * @brief Token definitions for the lexer.
+ *
+ * @ingroup Lexer
+ */
+
 #ifndef ROCKY_LEXER_TOKEN_H
 #define ROCKY_LEXER_TOKEN_H
 
@@ -54,15 +61,21 @@ typedef enum {
     TOKEN_INVALID,
 } TokenKind;
 
-/* Lexeme is represented as a slice (start pointer+length) into original source buffer */
+/**
+ * @brief Represents a single token in the source code.
+ *
+ * Lexeme is represented as a slice (start pointer + length)
+ * into the original source buffer.
+ */
 typedef struct {
-    TokenKind type;     // type of token
+    /** @brief Token category. */
+    TokenKind type;
 
-    const char *start;  // pointer to first character of lexeme
-    size_t length;      // length of lexeme
+    const char *start;  /**< Pointer to first character of lexeme */
+    size_t length;      /**< Length of lexeme */
 
-    int line;           // line no.
-    int column;         // column no.
+    int line;           /**< Line number where the token appears */
+    int column;         /**< Column number where the token starts */
 
 } Token;
 

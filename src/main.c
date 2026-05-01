@@ -1,3 +1,9 @@
+/**
+ * @file main.c
+ * @brief Program entry point for JIT smoke run.
+ * @ingroup Core
+ */
+
 #include <llvm-c/Core.h>
 #include <llvm-c/Types.h>
 #include <llvm-c/Target.h>
@@ -10,6 +16,10 @@
 
 typedef void printnum_fn(int p);
 
+/**
+ * @brief Runs a small JIT flow and prints a hello-world message.
+ * @return Process exit code.
+ */
 int main() {
     JITContext jit = {0};
     jit_init(&jit);
