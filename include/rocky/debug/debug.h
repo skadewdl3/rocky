@@ -11,6 +11,7 @@ typedef enum {
     TOK_PRINT_FLAG_LEXEME = 1 << 1,
     TOK_PRINT_FLAG_LINE = 1 << 2,
     TOK_PRINT_FLAG_COL = 1 << 3,
+    TOK_PRINT_ALL = 0xF,
 } TokenPrintFlags;
 
 /* Convert TokenType enum to a human-readable string. */
