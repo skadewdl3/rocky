@@ -12,7 +12,7 @@ run = { cmd = "./build/rocky", depends-on = ["compile"] }
 clean = "rm -r build"
 compile = { cmd = "cmake --build build", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build -L {{ label }}", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
-docs = { cmd = "doxygen", depends-on = ["compile"] }
+docs = { cmd = "doxygen Doxyfile", cwd = "." }
 
 
 # Windows auto-installs and uses msvc
@@ -25,7 +25,7 @@ run       = { cmd = "cmd /C .\\build\\rocky.exe", depends-on = ["compile"] }
 clean = "cmd /C rmdir /S /Q %PIXI_PROJECT_ROOT%\\build"
 compile = { cmd = "cmd /C cmake --build build", depends-on = ["configure"] }
 test = { cmd = "cmd /C ctest --test-dir build -L {{ label }}", depends-on = ["compile"], args = [{ arg = "label", default = ".+" }] }
-docs = { cmd = "cmd /C doxygen", depends-on = ["compile"] }
+docs = { cmd = "cmd /C doxygen", cwd = "." }
 
 
 [dependencies]
