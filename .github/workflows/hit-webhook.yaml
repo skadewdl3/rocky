@@ -5,6 +5,7 @@ on:
     branches:
       - slides
       - main
+      - docs
   workflow_dispatch:
 
 jobs:
