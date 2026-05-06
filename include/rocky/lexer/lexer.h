@@ -37,3 +37,5 @@ void lexer_init(Lexer *lexer, const char *source);
 Token lexer_next_token(Lexer *lexer);
 
 #endif
+
+/** @} */
