@@ -116,8 +116,8 @@ if (!TYPST_BIN_DIR) throw new Error("Typst binary not found");
 TYPST_BIN = resolve(TYPST_BIN_DIR, "typst");
 await $`chmod +x ${TYPST_BIN}`;
 
+/* ---------------- INSTALL DOXYGEN ---------------- */
 if (!args["skip-doxygen"] && !args["skip-downloads"] && !args["skip-docs"]) {
-  /* ---------------- INSTALL DOXYGEN ---------------- */
   console.log("Installing Doxygen...");
   await $`
     curl -L https://www.doxygen.nl/files/doxygen-1.10.0.linux.bin.tar.gz -o doxygen.tar.gz
@@ -166,7 +166,11 @@ if (!args["skip-typst"] && !args["skip-build"] && !args["skip-slides"]) {
     slidesMap[`/${name}`] = config;
   }
 
-  await $`echo '${JSON.stringify(slidesMap, null, 2)}' > ${SLIDES_DEST}/slides.json`;
+  // Sort slidesMap alphabetically by key
+  const sortedSlidesMap = Object.fromEntries(
+    Object.entries(slidesMap).sort((a, b) => a[0].localeCompare(b[0])),
+  );
+  await $`echo '${JSON.stringify(sortedSlidesMap, null, 2)}' > ${SLIDES_DEST}/slides.json`;
 
   console.log("Slides build complete.");
 }

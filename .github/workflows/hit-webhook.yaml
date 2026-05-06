@@ -1,0 +1,29 @@
+name: Cloudflare Webhook
+
+on:
+  push:
+    branches:
+      - slides
+      - main
+  workflow_dispatch:
+
+jobs:
+  hit-webhook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate webhook secret is set
+        env:
+          CLOUDFLARE_WEBHOOK_URL: ${{ secrets.CLOUDFLARE_WEBHOOK_URL }}
+        run: |
+          if [ -z "$CLOUDFLARE_WEBHOOK_URL" ]; then
+            echo "CLOUDFLARE_WEBHOOK_URL is not set"
+            exit 1
+          fi
+
+      - name: Trigger webhook
+        env:
+          CLOUDFLARE_WEBHOOK_URL: ${{ secrets.CLOUDFLARE_WEBHOOK_URL }}
+        run: |
+          curl --fail --show-error --silent \
+            -X POST \
+            "$CLOUDFLARE_WEBHOOK_URL"
