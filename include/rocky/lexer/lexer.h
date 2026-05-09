@@ -1,28 +1,41 @@
+/**
+ * @file lexer.h
+ * @brief Lexer implementation for source code tokenization.
+ *
+ * @ingroup Lexer
+ */
+
 #ifndef ROCKY_LEXER_LEXER_H
 #define ROCKY_LEXER_LEXER_H
 
 #include <rocky/lexer/token.h>
 
-/*
- Lexer:
- Holds the state of the lexer while scanning input.
- */
+/** @brief Stateful lexer cursor over an input source buffer. */
 typedef struct {
-    const char *start;   // start of current lexeme
-    const char *current; // current position in input
-
+    /** @brief Start pointer of current lexeme. */
+    const char *start;
+    /** @brief Current scanning cursor. */
+    const char *current;
+    /** @brief Current 1-based line in source. */
     int line;
+    /** @brief Current 1-based column in source. */
     int column;
 } Lexer;
 
-/* Initializes lexer with given source code
-* Params:
-* 1.lexer: pointer to the lexer struct
-* 2.source: null-terminated i/p string to be tokenized */
+/**
+ * @brief Initializes a lexer from null-terminated source text.
+ * @param lexer Lexer state output.
+ * @param source Source input buffer.
+ */
 void lexer_init(Lexer *lexer, const char *source);
 
-/* Scans and returns next token from the i/p.
-* returned token's lexeme is a slice into the original source */
+/**
+ * @brief Scans and returns the next token from source.
+ * @param lexer Lexer to advance.
+ * @return Next token with lexeme slice into source.
+ */
 Token lexer_next_token(Lexer *lexer);
 
 #endif
+
+/** @} */

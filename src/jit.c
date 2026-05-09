@@ -1,3 +1,9 @@
+/**
+ * @file jit.c
+ * @brief LLVM ORC JIT implementation.
+ * @ingroup JIT
+ */
+
 #include <rocky/jit.h>
 
 #include <stdio.h>
@@ -19,10 +25,17 @@ static void jit_verify_module_mutable(JITContext* ctx) {
     }
 }
 
+/**
+ * @brief ORC error callback used by execution session.
+ * @param ctx User callback context (unused).
+ * @param err LLVM error object.
+ */
 void jit_error_report(void* ctx, LLVMErrorRef err) {
+    (void)ctx;
     printf("JIT Error Report: %s\n", LLVMGetErrorMessage(err));
 }
 
+/** @copydoc jit_init */
 void jit_init(JITContext* ctx) {
     memset(ctx, 0, sizeof(JITContext));
     
@@ -53,7 +66,7 @@ void jit_init(JITContext* ctx) {
     ctx->should_create_module = true;
 }
 
-// @Temporary Adds printnum
+/** @copydoc jit_add_dummy_functions */
 void jit_add_dummy_functions(JITContext* ctx) {
     jit_verify_module_mutable(ctx);
     LLVMModuleRef module = ctx->current_module.handle;
@@ -84,17 +97,20 @@ void jit_add_dummy_functions(JITContext* ctx) {
     LLVMDisposeBuilder(builder);
 }
 
+/** @copydoc jit_bake */
 void jit_bake(JITContext* ctx) {
     LLVMOrcLLJITAddLLVMIRModule(ctx->jit, ctx->jit_dylib, ctx->current_module.threadsafe_handle);
     ctx->should_create_module = true;
 }
 
+/** @copydoc jit_lookup_function */
 void_func* jit_lookup_function(JITContext* ctx, char* function_name) {
     LLVMOrcJITTargetAddress ret = 0;
     LLVMOrcLLJITLookup(ctx->jit, &ret, function_name);
     return (void_func*) ret;
 }
 
+/** @copydoc jit_free */
 void jit_free(JITContext* ctx) {
     LLVMOrcDisposeLLJIT(ctx->jit);
     LLVMOrcDisposeThreadSafeContext(ctx->orc_threadsafe_ctx);

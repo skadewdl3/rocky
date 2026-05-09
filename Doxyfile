@@ -1,0 +1,5 @@
+INPUT = ./include ./src
+RECURSIVE = YES
+OUTPUT_DIRECTORY = docs
+GENERATE_LATEX = NO
+EXCLUDE_PATTERNS = */external/*

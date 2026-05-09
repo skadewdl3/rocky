@@ -1,3 +1,9 @@
+/**
+ * @file parser.c
+ * @brief Pratt parser implementation.
+ * @ingroup Parser
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -118,6 +124,7 @@ void parser_init(Parser *p, const Token *tokens, int len, Arena *arena) {
     p->arena  = arena;
 }
 
+/** @copydoc parse_expr */
 Expr *parse_expr(Parser *p, int min_bp) {
     Token  tok = advance(p);
     Expr  *lhs = NULL;

@@ -13,3 +13,5 @@ project.4coder
 # lit tests
 tests/lit/.lit_test_times.txt
 tests/lit/**/Output/
+
+docs/

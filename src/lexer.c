@@ -1,9 +1,15 @@
+/**
+ * @file lexer.c
+ * @brief Lexer implementation.
+ * @ingroup Lexer
+ */
+
 #include <rocky/lexer/token.h>
 #include <rocky/lexer/lexer.h>
 #include <ctype.h>
 
 
-//initialize lexer with source code
+/** @copydoc lexer_init */
 void lexer_init(Lexer *lexer, const char *source){
 
     lexer->start=source;
@@ -14,7 +20,10 @@ void lexer_init(Lexer *lexer, const char *source){
 
 }
 
-//remove whitespace, tab, track lines
+/**
+ * @brief Trims leading simple whitespace from lexer cursor.
+ * @param lexer Lexer state to advance.
+ */
 void lexer_trim_left(Lexer *lexer){
 
     while(*lexer->current == ' ' || *lexer->current =='\n' || *lexer->current =='\t'){
@@ -24,7 +33,7 @@ void lexer_trim_left(Lexer *lexer){
     //TODO: Add line tracking for '\n'
 }
 
-//handles numbers- ints & floats, +, -, *, /, ^, (, )
+/** @copydoc lexer_next_token */
 Token lexer_next_token(Lexer *lexer){
 
     //skip whitespace
