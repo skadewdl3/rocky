@@ -1,135 +1,176 @@
-#include <rocky/lexer/token.h>
-#include <rocky/lexer/lexer.h>
-#include <ctype.h>
+#include "rocky/lexer/lexer.h"
+#include <string.h>
 
+/* ---------- Basic checks ---------- */
 
-//initialize lexer with source code
-void lexer_init(Lexer *lexer, const char *source){
-
-    lexer->start=source;
-    lexer->current=source;
-
-    lexer->line=1;
-    lexer->column=1;
-
+static inline int is_digit(char c) {
+    return (unsigned)(c - '0') <= 9;
 }
 
-//remove whitespace, tab, track lines
-void lexer_trim_left(Lexer *lexer){
-
-    while(*lexer->current == ' ' || *lexer->current =='\n' || *lexer->current =='\t'){
-        lexer->current++;
-    }
-
-    //TODO: Add line tracking for '\n'
+static inline int is_alpha(char c) {
+    return ((c | 32) >= 'a' && (c | 32) <= 'z') || c == '_';
 }
 
-//handles numbers- ints & floats, +, -, *, /, ^, (, )
-Token lexer_next_token(Lexer *lexer){
+static inline int is_alnum(char c) {
+    return is_alpha(c) || is_digit(c);
+}
 
-    //skip whitespace
-    lexer_trim_left(lexer);
+/* ---------- Token helper ---------- */
 
-    Token token;
+static inline Token make_token(Lexer *l, TokenType type) {
+    Token t;
+    t.type = type;
+    t.start = l->start;
+    t.length = (size_t)(l->current - l->start);
+    t.line = l->line;
+    t.column = l->column - (int)t.length;
+    return t;
+}
 
-    if(*lexer->current =='\0'){
-        token.type  = TOKEN_EOF;
-        token.start = lexer->current;
-        token.length = 0;
-        return token;
-    }
+/* ---------- Init ---------- */
 
-    lexer->start=lexer->current; //new token begins //slice beginning
-    char c = *lexer->current;
-    lexer->current++;
+void lexer_init(Lexer *l, const char *src) {
+    l->start = src;
+    l->current = src;
+    l->line = 1;
+    l->column = 0;
+}
 
-    //for multi-character tokens - int, float for now
-    if(isdigit(c)){
+/* ---------- Core ---------- */
 
-        while(isdigit(*lexer->current)){
-            lexer->current++;
-        }
+Token lexer_next_token(Lexer *l) {
 
-        if(*lexer->current == '.'){
-            lexer->current++;
+    /* Skip whitespace + comments */
+    for (;;) {
+        char c = *l->current;
 
-            while(isdigit(*lexer->current)){
-                lexer->current++;
+        if (c == ' ' || c == '\t' || c == '\r') {
+            l->current++;
+            l->column++;
+        } else if (c == '\n') {
+            l->current++;
+            l->line++;
+            l->column = 0;
+        } else if (c == '/' && l->current[1] == '/') {
+            while (*l->current && *l->current != '\n') {
+                l->current++;
+                l->column++;
             }
-
-            token.type  = TOKEN_FLOAT;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;  //calculate length
-            return token;
-
-        }else{
-            token.type  = TOKEN_INT;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
+        } else {
+            break;
         }
-
     }
 
-    //Single character tokens
-    switch(c){
+    l->start = l->current;
 
-        case '+':
-            token.type  = TOKEN_PLUS;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
+    /* EOF */
+    if (*l->current == '\0') {
+        return make_token(l, TOKEN_EOF);
+    }
 
-        case '-':
-            token.type  = TOKEN_MINUS;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
+    char c = *l->current++;
+    l->column++;
 
-        case '*':
-            token.type  = TOKEN_STAR;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
+    /* ---------- Numbers ---------- */
+    if (is_digit(c)) {
+        while (is_digit(*l->current)) {
+            l->current++;
+            l->column++;
+        }
 
-        case '/':
-            token.type  = TOKEN_SLASH;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
+        if (*l->current == '.') {
+            l->current++;
+            l->column++;
+
+            while (is_digit(*l->current)) {
+                l->current++;
+                l->column++;
+            }
+            return make_token(l, TOKEN_FLOAT);
+        }
+
+        return make_token(l, TOKEN_INT);
+    }
+
+    /* ---------- Identifiers / Keywords ---------- */
+    if (is_alpha(c)) {
+        while (is_alnum(*l->current)) {
+            l->current++;
+            l->column++;
+        }
+
+        size_t len = (size_t)(l->current - l->start);
+        const char *s = l->start;
+
+        if (len == 2 && s[0]=='i' && s[1]=='f') return make_token(l, TOKEN_IF);
+        if (len == 3 && s[0]=='f' && s[1]=='o' && s[2]=='r') return make_token(l, TOKEN_FOR);
+
+        if (len == 4) {
+            if (!memcmp(s,"true",4)) return make_token(l, TOKEN_TRUE);
+            if (!memcmp(s,"else",4)) return make_token(l, TOKEN_ELSE);
+        }
+
+        if (len == 5) {
+            if (!memcmp(s,"false",5)) return make_token(l, TOKEN_FALSE);
+            if (!memcmp(s,"while",5)) return make_token(l, TOKEN_WHILE);
+            if (!memcmp(s,"break",5)) return make_token(l, TOKEN_BREAK);
+        }
+
+        if (len == 6 && !memcmp(s,"return",6))
+            return make_token(l, TOKEN_RETURN);
+
+        if (len == 8 && !memcmp(s,"continue",8))
+            return make_token(l, TOKEN_CONTINUE);
+
+        return make_token(l, TOKEN_IDENTIFIER);
+    }
+
+    /* ---------- Operators ---------- */
+
+    switch (c) {
+
+        case '+': return make_token(l, TOKEN_PLUS);
+        case '-': return make_token(l, TOKEN_MINUS);
+        case '*': return make_token(l, TOKEN_STAR);
+        case '/': return make_token(l, TOKEN_SLASH);
+        case '%': return make_token(l, TOKEN_PERCENT);
+
+        case '&':
+            if (*l->current == '&') { l->current++; l->column++; return make_token(l, TOKEN_AMPAMP); }
+            return make_token(l, TOKEN_AMP);
+
+        case '|':
+            if (*l->current == '|') { l->current++; l->column++; return make_token(l, TOKEN_PIPEPIPE); }
+            return make_token(l, TOKEN_PIPE);
+
+        case '^': return make_token(l, TOKEN_CARET);
+        case '~': return make_token(l, TOKEN_TILDE);
+
+        case '!':
+            if (*l->current == '=') { l->current++; l->column++; return make_token(l, TOKEN_BANGEQ); }
+            return make_token(l, TOKEN_BANG);
 
         case '=':
-            token.type  = TOKEN_EQUALS;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
+            if (*l->current == '=') { l->current++; l->column++; return make_token(l, TOKEN_EQEQ); }
+            return make_token(l, TOKEN_EQUALS);
 
-        case '^':
-            token.type  = TOKEN_CARET;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
+        case '<':
+            if (*l->current == '=') { l->current++; l->column++; return make_token(l, TOKEN_LTEQ); }
+            if (*l->current == '<') { l->current++; l->column++; return make_token(l, TOKEN_LSHIFT); }
+            return make_token(l, TOKEN_LT);
 
-        case '(':
-            token.type  = TOKEN_LPAREN;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
+        case '>':
+            if (*l->current == '=') { l->current++; l->column++; return make_token(l, TOKEN_GTEQ); }
+            if (*l->current == '>') { l->current++; l->column++; return make_token(l, TOKEN_RSHIFT); }
+            return make_token(l, TOKEN_GT);
 
-        case ')':
-            token.type  = TOKEN_RPAREN;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
-
-        default :
-            token.type  = TOKEN_INVALID;
-            token.start = lexer->start;
-            token.length = lexer->current - lexer->start;
-            return token;
+        case '(': return make_token(l, TOKEN_LPAREN);
+        case ')': return make_token(l, TOKEN_RPAREN);
+        case '{': return make_token(l, TOKEN_LBRACE);
+        case '}': return make_token(l, TOKEN_RBRACE);
+        case ',': return make_token(l, TOKEN_COMMA);
+        case ';': return make_token(l, TOKEN_SEMICOLON);
     }
 
-    /*TODO: 1.Create functions for repeating blocks - advance & peek
-    *       2.Accept strictly valid float (currently 123. is also valid) */
-
+    return make_token(l, TOKEN_INVALID);
 }

@@ -3,67 +3,81 @@
 
 #include <stddef.h>
 
+/* Token types */
 typedef enum {
-    /*  Literals  */
-    TOKEN_INT,
-    TOKEN_FLOAT,
 
-    /*  Identifiers  */
-    TOKEN_IDENTIFIER,
-    TOKEN_TRUE,
-    TOKEN_FALSE,
+    /* literals */
+    TOKEN_INT,        // 123
+    TOKEN_FLOAT,      // 1.23
 
-    /*  Arithmetic operators  */
-    TOKEN_PLUS,
-    TOKEN_MINUS,
-    TOKEN_STAR,
-    TOKEN_SLASH,
-    TOKEN_PERCENT,
+    /* identifiers */
+    TOKEN_IDENTIFIER, // identifier
+    TOKEN_TRUE,       // true
+    TOKEN_FALSE,      // false
+	
+    /* keywords */
+    TOKEN_IF,         /* if */
+    TOKEN_ELSE,       /* else */
+    TOKEN_WHILE,      /* while */
+    TOKEN_FOR,        /* for */
+    TOKEN_RETURN,     /* return */
+    TOKEN_BREAK,      /* break */
+    TOKEN_CONTINUE,   /* continue */
 
-    /*  Bitwise operators  */
-    TOKEN_AMP,          /* &  */
-    TOKEN_PIPE,         /* |  */
-    TOKEN_CARET,        /* ^  */
-    TOKEN_TILDE,        /* ~  */
-    TOKEN_LSHIFT,       /* << */
-    TOKEN_RSHIFT,       /* >> */
+    /* arithmetic */
+    TOKEN_PLUS,       // +
+    TOKEN_MINUS,      // -
+    TOKEN_STAR,       // *
+    TOKEN_SLASH,      // /
+    TOKEN_PERCENT,    // %
 
-    /*  Comparison  */
-    TOKEN_EQEQ,         /* == */
-    TOKEN_BANGEQ,       /* != */
-    TOKEN_LT,           /* <  */
-    TOKEN_GT,           /* >  */
-    TOKEN_LTEQ,         /* <= */
-    TOKEN_GTEQ,         /* >= */
+    /* bitwise */
+    TOKEN_AMP,        // &
+    TOKEN_PIPE,       // |
+    TOKEN_CARET,      // ^
+    TOKEN_TILDE,      // ~
+    TOKEN_LSHIFT,     // <<
+    TOKEN_RSHIFT,     // >>
 
-    /*  Logical  */
-    TOKEN_AMPAMP,       /* && */
-    TOKEN_PIPEPIPE,     /* || */
-    TOKEN_BANG,         /* !  */
+    /* comparison */
+    TOKEN_EQEQ,       // ==
+    TOKEN_BANGEQ,     // !=
+    TOKEN_LT,         // <
+    TOKEN_GT,         // >
+    TOKEN_LTEQ,       // <=
+    TOKEN_GTEQ,       // >=
 
-    /*  Assignment  */
-    TOKEN_EQUALS,       /* =  */
+    /* logical */
+    TOKEN_AMPAMP,     // &&
+    TOKEN_PIPEPIPE,   // ||
+    TOKEN_BANG,       // !
 
-    /*  Parentheses  */
-    TOKEN_LPAREN,
-    TOKEN_RPAREN,
+    /* assignment */
+    TOKEN_EQUALS,     // =
 
-    /*  Special  */
-    TOKEN_SEMICOLON,
-    TOKEN_EOF,
-    TOKEN_INVALID,
-} TokenKind;
+    /* grouping */
+    TOKEN_LPAREN,     // (
+    TOKEN_RPAREN,     // )
+    TOKEN_LBRACE,     // {
+    TOKEN_RBRACE,     // }
+    TOKEN_COMMA,      // ,
 
-/* Lexeme is represented as a slice (start pointer+length) into original source buffer */
+    /* special */
+    TOKEN_SEMICOLON,  // ;
+    TOKEN_EOF,        // EOF
+    TOKEN_INVALID,    // invalid
+
+} TokenType;
+
+/* Token = slice into source */
 typedef struct {
-    TokenKind type;     // type of token
+    TokenType type;
 
-    const char *start;  // pointer to first character of lexeme
-    size_t length;      // length of lexeme
+    const char *start; // start
+    size_t length;     // length
 
-    int line;           // line no.
-    int column;         // column no.
-
+    int line;	       // line number
+    int column;	       // columnn number
 } Token;
 
 #endif
