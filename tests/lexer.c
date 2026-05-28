@@ -9,8 +9,8 @@ void tearDown(void) {}
 Lexer lexer;
 
 static void assert_token(const char *source, TokenKind expected_type, const char *expected_lexeme) {
-    lexer_init(&lexer, source);
-    Token token = lexer_next_token(&lexer);
+    lexer_init(source);
+    Token token = lexer_next_token();
     TEST_ASSERT_EQUAL_INT_MESSAGE(expected_type, token.type, source);
     if (expected_lexeme) {
         TEST_ASSERT_EQUAL_INT_MESSAGE(strlen(expected_lexeme), token.length, "Lexeme length mismatch");
@@ -23,7 +23,7 @@ void test_lexer_single_char_operators(void) {
     assert_token("-", TOKEN_MINUS, "-");
     assert_token("*", TOKEN_STAR, "*");
     assert_token("/", TOKEN_SLASH, "/");
-    assert_token("=", TOKEN_EQUALS, "=");
+    assert_token("=", TOKEN_EQUAL, "=");
     assert_token("^", TOKEN_CARET, "^");
     assert_token("(", TOKEN_LPAREN, "(");
     assert_token(")", TOKEN_RPAREN, ")");
@@ -48,13 +48,13 @@ void test_lexer_whitespace(void) {
 }
 
 void test_lexer_eof(void) {
-    lexer_init(&lexer, "");
-    Token token = lexer_next_token(&lexer);
+    lexer_init("");
+    Token token = lexer_next_token();
     TEST_ASSERT_EQUAL(TOKEN_EOF, token.type);
     TEST_ASSERT_EQUAL(0, token.length);
 
-    lexer_init(&lexer, "   ");
-    token = lexer_next_token(&lexer);
+    lexer_init("   ");
+    token = lexer_next_token();
     TEST_ASSERT_EQUAL(TOKEN_EOF, token.type);
 }
 

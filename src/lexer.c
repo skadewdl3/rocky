@@ -22,10 +22,6 @@ static bool isAtEnd(){
     return *lexer.current == '\0';
 }
 
-static bool isAtEnd(){
-    return *lexer.current == '\0';
-}
-
 //read next char, consume and return 
 static char lexer_advance(){
     if(*lexer.current == '\n'){
@@ -82,7 +78,7 @@ static void skip_whitespace(){
 }
 
 //create token 
-static Token make_token(TokenType type){
+static Token make_token(TokenKind type){
     
     Token token;  
     token.type=type;
@@ -129,7 +125,7 @@ static Token number(){
     while(isdigit(peek())) lexer_advance();
 
     //fractional part check
-    if(peek() == '.' && isdigit(peekNext())){
+    if(peek() == '.'){
         lexer_advance();
 
         while (isdigit(peek())) lexer_advance();
@@ -139,7 +135,7 @@ static Token number(){
     }
 }
 
-static TokenType checkKeyword(int start, int length, const char* rest, TokenType type){
+static TokenKind checkKeyword(int start, int length, const char* rest, TokenKind type){
     if(lexer.current - lexer.start == start + length &&
        memcmp(lexer.start + start, rest, length)==0){
         return type;
@@ -149,7 +145,7 @@ static TokenType checkKeyword(int start, int length, const char* rest, TokenType
 
 
 //for recognizing keywords
-static TokenType identifierType(){ 
+static TokenKind identifierType(){ 
   
   switch(lexer.start[0]){
     case 'e': return checkKeyword(1, 3, "lse", TOKEN_ELSE);

@@ -38,7 +38,7 @@ const char* token_type_str(TokenKind type) {
         case TOKEN_STAR: return "STAR";
         case TOKEN_SLASH: return "SLASH";
         case TOKEN_PERCENT: return "PERCENT";
-        case TOKEN_EQUALS: return "EQUALS";
+        case TOKEN_EQUAL: return "EQUALS";
         
         /*  Parentheses  */
         case TOKEN_LPAREN: return "(";

@@ -122,7 +122,7 @@ void test_parser_binary_arithmetic(void) {
 }
 
 void test_parser_binary_comparison(void) {
-    TokenKind ops[] = { TOKEN_EQEQ, TOKEN_BANGEQ, TOKEN_LT, TOKEN_GT, TOKEN_LTEQ, TOKEN_GTEQ };
+    TokenKind ops[] = { TOKEN_EQUAL_EQUAL, TOKEN_BANG_EQUAL, TOKEN_LESS, TOKEN_GREATER, TOKEN_LESS_EQUAL, TOKEN_GREATER_EQUAL };
     BinaryOp bops[] = { BINOP_EQ, BINOP_NEQ, BINOP_LT, BINOP_GT, BINOP_LE, BINOP_GE };
 
     for (int i = 0; i < 6; i++) {
@@ -134,7 +134,7 @@ void test_parser_binary_comparison(void) {
 }
 
 void test_parser_binary_bitwise(void) {
-    TokenKind ops[] = { TOKEN_AMP, TOKEN_PIPE, TOKEN_CARET, TOKEN_LSHIFT, TOKEN_RSHIFT };
+    TokenKind ops[] = { TOKEN_AND, TOKEN_OR, TOKEN_CARET, TOKEN_LSHIFT, TOKEN_RSHIFT };
     BinaryOp bops[] = { BINOP_BAND, BINOP_BOR, BINOP_BXOR, BINOP_SHL, BINOP_SHR };
 
     for (int i = 0; i < 5; i++) {
@@ -146,12 +146,12 @@ void test_parser_binary_bitwise(void) {
 }
 
 void test_parser_binary_logical(void) {
-    Token toks_and[] = { tok_ident("a"), tok_op(TOKEN_AMPAMP), tok_ident("b"), tok_eof() };
+    Token toks_and[] = { tok_ident("a"), tok_op(TOKEN_LAND), tok_ident("b"), tok_eof() };
     Expr *e_and = parse_tokens(toks_and, 4);
     TEST_ASSERT_EQUAL(EXPR_BINARY, e_and->kind);
     TEST_ASSERT_EQUAL(BINOP_AND, e_and->as.binary.op);
 
-    Token toks_or[] = { tok_ident("a"), tok_op(TOKEN_PIPEPIPE), tok_ident("b"), tok_eof() };
+    Token toks_or[] = { tok_ident("a"), tok_op(TOKEN_LOR), tok_ident("b"), tok_eof() };
     Expr *e_or = parse_tokens(toks_or, 4);
     TEST_ASSERT_EQUAL(EXPR_BINARY, e_or->kind);
     TEST_ASSERT_EQUAL(BINOP_OR, e_or->as.binary.op);
