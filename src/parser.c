@@ -43,17 +43,17 @@ typedef struct { int lbp; int rbp; } BP;
 
 static BP infix_bp(TokenKind k) {
     switch (k) {
-        case TOKEN_LOR:  return (BP){ 4,  5  };
-        case TOKEN_LAND:    return (BP){ 6,  7  };
-        case TOKEN_EQUAL_EQUAL:
-        case TOKEN_BANG_EQUAL:    return (BP){ 8,  9  };
-        case TOKEN_LESS:
-        case TOKEN_GREATER:
-        case TOKEN_LESS_EQUAL:
-        case TOKEN_GREATER_EQUAL:      return (BP){ 10, 11 };
-        case TOKEN_OR:      return (BP){ 12, 13 };
+        case TOKEN_PIPEPIPE:  return (BP){ 4,  5  };
+        case TOKEN_AMPAMP:    return (BP){ 6,  7  };
+        case TOKEN_EQEQ:
+        case TOKEN_BANGEQ:    return (BP){ 8,  9  };
+        case TOKEN_LT:
+        case TOKEN_GT:
+        case TOKEN_LTEQ:
+        case TOKEN_GTEQ:      return (BP){ 10, 11 };
+        case TOKEN_PIPE:      return (BP){ 12, 13 };
         case TOKEN_CARET:     return (BP){ 12, 13 };
-        case TOKEN_AND:       return (BP){ 14, 15 };
+        case TOKEN_AMP:       return (BP){ 14, 15 };
         case TOKEN_LSHIFT:
         case TOKEN_RSHIFT:    return (BP){ 16, 17 };
         case TOKEN_PLUS:
@@ -92,19 +92,19 @@ static BinaryOp tok_to_binop(TokenKind k) {
         case TOKEN_STAR:      return BINOP_MUL;
         case TOKEN_SLASH:     return BINOP_DIV;
         case TOKEN_PERCENT:   return BINOP_MOD;
-        case TOKEN_AND:       return BINOP_BAND;
-        case TOKEN_OR:      return BINOP_BOR;
+        case TOKEN_AMP:       return BINOP_BAND;
+        case TOKEN_PIPE:      return BINOP_BOR;
         case TOKEN_CARET:     return BINOP_BXOR;
         case TOKEN_LSHIFT:    return BINOP_SHL;
         case TOKEN_RSHIFT:    return BINOP_SHR;
-        case TOKEN_EQUAL_EQUAL:      return BINOP_EQ;
-        case TOKEN_BANG_EQUAL:    return BINOP_NEQ;
-        case TOKEN_LESS:        return BINOP_LT;
-        case TOKEN_GREATER:        return BINOP_GT;
-        case TOKEN_LESS_EQUAL:      return BINOP_LE;
-        case TOKEN_GREATER_EQUAL:      return BINOP_GE;
-        case TOKEN_LAND:    return BINOP_AND;
-        case TOKEN_LOR:  return BINOP_OR;
+        case TOKEN_EQEQ:      return BINOP_EQ;
+        case TOKEN_BANGEQ:    return BINOP_NEQ;
+        case TOKEN_LT:        return BINOP_LT;
+        case TOKEN_GT:        return BINOP_GT;
+        case TOKEN_LTEQ:      return BINOP_LE;
+        case TOKEN_GTEQ:      return BINOP_GE;
+        case TOKEN_AMPAMP:    return BINOP_AND;
+        case TOKEN_PIPEPIPE:  return BINOP_OR;
         default:              exit(1);
     }
 }

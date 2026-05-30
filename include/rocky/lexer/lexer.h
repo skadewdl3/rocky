@@ -19,10 +19,10 @@ typedef struct {
 * Params:
 * 1.lexer: pointer to the lexer struct
 * 2.source: null-terminated i/p string to be tokenized */
-void lexer_init(const char *source);
+void lexer_init(Lexer *lexer, const char *source);
 
 /* Scans and returns next token from the i/p.
 * returned token's lexeme is a slice into the original source */
-Token lexer_next_token();
+Token lexer_next_token(Lexer *lexer);
 
 #endif
