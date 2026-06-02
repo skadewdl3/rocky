@@ -21,7 +21,7 @@ include_directories(external/unity/src)
 add_definitions(${LLVM_DEFINITIONS})
 link_directories(${LLVM_LIBRARY_DIRS})
 
-add_executable(rocky src/main.c src/debug.c src/lexer.c src/parser.c src/jit.c)
+add_executable(rocky src/main.c src/cli.c src/debug.c src/lexer.c src/parser.c src/jit.c)
 target_include_directories(rocky PUBLIC include)
 
 if(WIN32)
