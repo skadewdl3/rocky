@@ -6,7 +6,7 @@
 /*
  Lexer:
  Holds the state of the lexer while scanning input.
- */
+*/
 typedef struct {
     const char *start;   // start of current lexeme
     const char *current; // current position in input

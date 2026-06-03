@@ -14,5 +14,5 @@ project.4coder
 tests/lit/.lit_test_times.txt
 tests/lit/**/Output/
 
-# local file used to track self study
-/PENDINGGGG.md
+# local file used to track self study stuff
+/PENDING.md
