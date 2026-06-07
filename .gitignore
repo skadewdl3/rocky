@@ -31,3 +31,4 @@ pnpm-debug.log*
 temp/
 public/*.pdf
 public/*.json
+public/docs

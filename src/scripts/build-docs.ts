@@ -1,5 +1,6 @@
 import { $ } from "bun";
 import { rmSync, mkdirSync, existsSync, readdirSync, statSync } from "fs";
+import { readdir } from "fs/promises";
 import { parseArgs } from "util";
 import { resolve, join, basename, dirname } from "path";
 
@@ -81,11 +82,10 @@ const { values: args, positionals } = parseArgs({
 const WORKDIR = ensure("temp");
 const SRC = resolve("src");
 const ROOT = resolve(SRC, "..");
-const DOCS = ensure("docs");
 const SLIDES = resolve(WORKDIR, "slides");
 const CODE = resolve(WORKDIR, "code");
-const SLIDES_DEST = resolve(ROOT, "public");
-const DOCS_DEST = resolve(SRC, "content", "docs");
+const PUBLIC = resolve(ROOT, "public");
+ensure(resolve(PUBLIC, "docs"));
 
 const REPO_URL = "https://github.com/skadewdl3/rocky";
 const SLIDES_BRANCH = "slides";
@@ -93,38 +93,44 @@ const CODE_BRANCH = "main";
 
 const TYPST_URL =
   "https://github.com/typst/typst/releases/download/v0.14.2/typst-x86_64-unknown-linux-musl.tar.xz";
+const DOXYGEN_URL =
+  "https://github.com/doxygen/doxygen/releases/download/Release_1_17_0/doxygen-1.17.0.linux.bin.tar.gz";
 let TYPST_BIN = null;
-const DOXYGEN_URL = "";
-let DOXYGEN_BIN = "";
+let DOXYGEN_BIN = null;
+let TYPST_BIN_DIR = null;
+let DOXYGEN_BIN_DIR = null;
 
 // clean
 if (!args["skip-clean"]) {
   clean(WORKDIR);
+  clean(resolve(SRC, "content"));
 }
 
 /* ---------------- INSTALL TYPST ---------------- */
-if (!args["skip-typst"] && !args["skip-downloads"] && !args["skip-slides"]) {
-  console.log("Installing Typst...");
-  await $`
-    curl -L ${TYPST_URL} -o ${resolve(WORKDIR, "typst.tar.xz")}
-  `;
-  await $`tar -xJf ${resolve(WORKDIR, "typst.tar.xz")} -C ${WORKDIR}`;
+if (!args["skip-typst"] && !args["skip-slides"]) {
+  if (!args["skip-downloads"]) {
+    console.log("Downloading Typst...");
+    await $`
+      curl -L ${TYPST_URL} -o ${resolve(WORKDIR, "typst.tar.xz")}
+    `;
+    await $`tar -xJf ${resolve(WORKDIR, "typst.tar.xz")} -C ${WORKDIR}`;
+  }
+  TYPST_BIN_DIR = findDir({ baseDir: WORKDIR, prefix: "typst" });
+  if (!TYPST_BIN_DIR) throw new Error("Typst binary not found");
+  TYPST_BIN = resolve(TYPST_BIN_DIR, "typst");
+  await $`chmod +x ${TYPST_BIN}`;
 }
 
-let TYPST_BIN_DIR = findDir({ baseDir: WORKDIR, prefix: "typst" });
-if (!TYPST_BIN_DIR) throw new Error("Typst binary not found");
-TYPST_BIN = resolve(TYPST_BIN_DIR, "typst");
-await $`chmod +x ${TYPST_BIN}`;
-
 /* ---------------- INSTALL DOXYGEN ---------------- */
-if (!args["skip-doxygen"] && !args["skip-downloads"] && !args["skip-docs"]) {
-  console.log("Installing Doxygen...");
-  await $`
-    curl -L https://www.doxygen.nl/files/doxygen-1.10.0.linux.bin.tar.gz -o doxygen.tar.gz
-  `;
-  await $`tar -xzf doxygen.tar.gz`;
-  await $`mv doxygen-*/bin/doxygen doxygen`;
-  await $`chmod +x doxygen`;
+if (!args["skip-doxygen"] && !args["skip-docs"]) {
+  if (!args["skip-downloads"]) {
+    console.log("Downloading Doxygen...");
+    await $`curl -L ${DOXYGEN_URL} -o ${resolve(WORKDIR, "doxygen.tar.gz")}`;
+    await $`tar -xvf ${resolve(WORKDIR, "doxygen.tar.gz")} -C ${WORKDIR}`;
+  }
+  DOXYGEN_BIN_DIR = findDir({ baseDir: WORKDIR, prefix: "doxygen" });
+  DOXYGEN_BIN = resolve(DOXYGEN_BIN_DIR, "bin", "doxygen");
+  await $`chmod +x ${DOXYGEN_BIN}`;
 }
 
 /* ---------------- CLONE ---------------- */
@@ -158,7 +164,7 @@ if (!args["skip-typst"] && !args["skip-build"] && !args["skip-slides"]) {
     const config =
       await $`${TYPST_BIN} query ${entry} "<docs-config>" --root ${src} --field value --one`.json();
 
-    const out = `${SLIDES_DEST}/${name}.pdf`;
+    const out = `${PUBLIC}/${name}.pdf`;
     console.log(`→ ${name}.pdf`);
 
     await $`${TYPST_BIN} compile ${entry} ${out} --root ${src}`;
@@ -170,7 +176,7 @@ if (!args["skip-typst"] && !args["skip-build"] && !args["skip-slides"]) {
   const sortedSlidesMap = Object.fromEntries(
     Object.entries(slidesMap).sort((a, b) => a[0].localeCompare(b[0])),
   );
-  await $`echo '${JSON.stringify(sortedSlidesMap, null, 2)}' > ${SLIDES_DEST}/slides.json`;
+  await $`echo '${JSON.stringify(sortedSlidesMap, null, 2)}' > ${PUBLIC}/slides.json`;
 
   console.log("Slides build complete.");
 }
@@ -179,21 +185,21 @@ if (!args["skip-doxygen"] && !args["skip-build"] && !args["skip-docs"]) {
   /* ---------------- DOXYGEN ---------------- */
   console.log("Running Doxygen...");
 
-  const XML_OUT = "temp/doxygen-out";
-
   // later, add a Doxyfile to main branch, and control this through it
-  await $`
-  ./doxygen Doxyfile \
-    INPUT=${CODE}/src ${CODE}/include \
-    OUTPUT_DIRECTORY=${XML_OUT}
-`;
+  let DOXYFILE =
+    await $`cat Doxyfile ; echo "GENERATE_XML=YES"; echo "OUTPUT_DIR=${resolve(CODE, "docs")}";`
+      .cwd(CODE)
+      .text();
+  console.log(DOXYFILE);
+  await $`echo '${DOXYFILE}' | ${DOXYGEN_BIN} -`.cwd(CODE);
 
+  let XML_DIR = resolve(CODE, "docs", "xml");
   /* ---------------- MOXYGEN ---------------- */
-  console.log("Running Moxygen...");
+  // console.log("Running Moxygen...");
 
-  const XML_DIR = `${CODE}/docs/xml`;
+  // const XML_DIR = `${CODE}/docs/xml`;
 
-  await $`bunx moxygen --output ${DOCS_DEST} ${XML_DIR}`;
+  await $`bunx moxygen --groups --output "${PUBLIC}/docs/%s.md" ${XML_DIR}`;
 
   console.log("Docs build complete.");
 }

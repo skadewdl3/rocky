@@ -1,0 +1,191 @@
+---
+import Default from "../../layouts/Default.astro";
+import { micromark } from "micromark";
+import { gfm, gfmHtml } from "micromark-extension-gfm";
+
+export const prerender = false;
+
+function textContent(html: string) {
+    return html
+        .replace(/<[^>]*>/g, "")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, "\"")
+        .replace(/&#39;/g, "'");
+}
+
+function slugify(value: string) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/[`*~[\]()]/g, "")
+        .replace(/&amp;/g, "and")
+        .replace(/[^a-z0-9_ -]+/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+}
+
+function addHeadingIds(html: string) {
+    const counts = new Map<string, number>();
+
+    return html.replace(
+        /<h([1-6])>(.*?)<\/h\1>/gs,
+        (_, level: string, content: string) => {
+            const baseSlug = slugify(textContent(content));
+            const count = counts.get(baseSlug) ?? 0;
+            counts.set(baseSlug, count + 1);
+            const id = count === 0 ? baseSlug : `${baseSlug}-${count}`;
+
+            return `<h${level} id="${id}">${content}</h${level}>`;
+        },
+    );
+}
+
+const doc = Astro.params.doc;
+const markdownUrl = new URL(`/docs/${doc}.md`, Astro.url);
+const response = await fetch(markdownUrl);
+
+if (!response.ok) {
+    return Astro.redirect("/docs");
+}
+
+const markdown = await response.text();
+const html = addHeadingIds(
+    micromark(markdown, {
+        extensions: [gfm()],
+        htmlExtensions: [gfmHtml()],
+    }),
+);
+const title = doc?.split("/").at(-1) ?? "Docs";
+---
+
+<Default>
+    <style slot="styles">
+        :global(.docs-article h1),
+        :global(.docs-article h2),
+        :global(.docs-article h3),
+        :global(.docs-article h4) {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
+            line-height: 1;
+        }
+
+        :global(.docs-article h1) {
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            margin: 0 0 1.25rem;
+        }
+
+        :global(.docs-article h2) {
+            font-size: 2.4rem;
+            margin: 3rem 0 1rem;
+            padding-top: 1rem;
+            border-top: 4px solid #000;
+        }
+
+        :global(.docs-article h3) {
+            font-size: 1.8rem;
+            margin: 2rem 0 0.8rem;
+        }
+
+        :global(.docs-article h4) {
+            font-size: 1.35rem;
+            margin: 1.6rem 0 0.6rem;
+        }
+
+        :global(.docs-article p),
+        :global(.docs-article li) {
+            font-size: 0.82rem;
+            line-height: 1.8;
+        }
+
+        :global(.docs-article a) {
+            color: #000;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+        }
+
+        :global(.docs-article table) {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0 2rem;
+            font-size: 0.72rem;
+        }
+
+        :global(.docs-article th),
+        :global(.docs-article td) {
+            border: 2px solid #000;
+            padding: 0.65rem;
+            vertical-align: top;
+        }
+
+        :global(.docs-article th) {
+            background: #000;
+            color: #f0e000;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 0.62rem;
+        }
+
+        :global(.docs-article pre) {
+            overflow-x: auto;
+            border: 4px solid #000;
+            background: #111;
+            color: #f5f0e8;
+            padding: 1rem;
+            margin: 1rem 0 1.5rem;
+            font-size: 0.75rem;
+        }
+
+        :global(.docs-article code) {
+            font-family: 'Space Mono', monospace;
+        }
+
+        :global(.docs-article :not(pre) > code) {
+            background: #f0e000;
+            border: 2px solid #000;
+            padding: 0 0.25rem;
+        }
+
+        :global(.docs-article hr) {
+            border: 0;
+            border-top: 4px solid #000;
+            margin: 2rem 0;
+        }
+    </style>
+
+    <main class="grid grid-cols-1 lg:grid-cols-[260px_1fr] border-b-4 border-black">
+        <aside
+            class="bg-black text-[#f5f0e8] px-6 py-6 lg:border-r-4 border-black"
+        >
+            <a
+                href="/docs"
+                class="inline-flex no-underline text-[#f0e000] text-[0.7rem] tracking-[0.18em] uppercase mb-8"
+            >
+                &lt;- All docs
+            </a>
+            <div class="flex flex-col gap-3">
+                <span class="text-[0.6rem] tracking-[0.2em] uppercase opacity-50">
+                    Module
+                </span>
+                <h1
+                    class="m-0 text-[#f0e000] tracking-[0.06em]"
+                    style="font-family:'Bebas Neue',sans-serif; font-size:3rem; line-height:1;"
+                >
+                    {title}
+                </h1>
+                <p class="m-0 text-[0.72rem] leading-[1.7] opacity-60 break-all">
+                    /docs/{doc}.md
+                </p>
+            </div>
+        </aside>
+
+        <article
+            class="docs-article min-w-0 bg-[#f5f0e8] px-5 py-8 sm:px-8 lg:px-12 lg:py-10"
+        >
+            <Fragment set:html={html} />
+        </article>
+    </main>
+</Default>

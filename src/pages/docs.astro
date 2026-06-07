@@ -1,211 +1,132 @@
 ---
 import Default from "../layouts/Default.astro";
-export const prerender = false;
+
+const modules = import.meta.glob("../../public/docs/**/*.md", {
+    eager: true,
+    import: "default",
+    query: "?raw",
+});
+
+const docs = Object.keys(modules)
+    .map((path) => {
+        const slug = path
+            .replace("../../public/docs/", "")
+            .replace(/\.md$/, "");
+        const name = slug.split("/").at(-1) ?? slug;
+
+        return {
+            name,
+            slug,
+            href: `/docs/${slug}`,
+        };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
 ---
 
 <Default>
     <style slot="styles">
-        /* clamp() font size — no Tailwind equivalent */
-        .coming-title {
-            font-size: clamp(4.5rem, 11vw, 8.5rem);
-            line-height: 0.88;
+        .docs-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            line-height: 0.9;
         }
 
-        /* paint-order stroke — no Tailwind equivalent */
-        .coming-title .yl {
+        .doc-card:hover {
+            background: #f0e000;
+        }
+
+        .doc-card:hover .doc-index {
+            background: #000;
             color: #f0e000;
-            -webkit-text-stroke: 3px #000;
-            paint-order: stroke fill;
-        }
-        @media (max-width: 480px) {
-            .coming-title .yl {
-                -webkit-text-stroke: 2px #000;
-            }
-        }
-
-        /* blink keyframe for status dots */
-        @keyframes blink {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.2;
-            }
-        }
-        .status-dot {
-            animation: blink 1.4s ease-in-out infinite;
-        }
-
-        /* sidebar layout flip at 720px and 480px — complex enough to keep in CSS */
-        @media (max-width: 720px) {
-            .docs-right {
-                flex-direction: row;
-            }
-            .info-block {
-                border-bottom: none !important;
-                border-right: 4px solid #000;
-            }
-            .info-block:last-child {
-                border-right: none;
-            }
-        }
-        @media (max-width: 480px) {
-            .docs-right {
-                flex-direction: column;
-            }
-            .info-block {
-                border-right: none !important;
-                border-bottom: 4px solid #000 !important;
-            }
-            .info-block:last-child {
-                border-bottom: none !important;
-            }
         }
     </style>
 
-    <main
-        class="grid grid-rows-[auto_1fr_auto] border-b-4 border-black"
-        style="min-height:calc(100vh - 8rem);"
-    >
-        <!-- STATUS BAR -->
-        <div
-            class="grid grid-cols-1 sm:grid-cols-3 bg-black text-[#f5f0e8] border-b-4 border-black"
+    <main class="border-b-4 border-black">
+        <section
+            class="grid grid-cols-1 lg:grid-cols-[320px_1fr] min-h-[calc(100vh-8rem)]"
         >
             <div
-                class="flex items-center gap-[0.6rem] px-5 py-2 text-[0.6rem] tracking-[0.2em] uppercase opacity-50 border-b border-[rgba(245,240,232,0.2)] sm:border-b-0 sm:border-r-4 sm:border-[#f5f0e8]"
+                class="flex flex-col justify-between gap-10 bg-black text-[#f5f0e8] px-6 py-8 sm:px-8 lg:border-r-4 border-black"
             >
-                <span
-                    class="status-dot w-[6px] h-[6px] rounded-full bg-[#f0e000] shrink-0"
-                ></span>
-                Status · In Progress
-            </div>
-            <div
-                class="flex items-center gap-[0.6rem] px-5 py-2 text-[0.6rem] tracking-[0.2em] uppercase opacity-50 border-b border-[rgba(245,240,232,0.2)] sm:border-b-0 sm:border-r-4 sm:border-[#f5f0e8]"
-            >
-                <span
-                    class="status-dot w-[6px] h-[6px] rounded-full bg-[#f0e000] shrink-0"
-                ></span>
-                Still gotta add doc comments lol
-            </div>
-            <div
-                class="flex items-center gap-[0.6rem] px-5 py-2 text-[0.6rem] tracking-[0.2em] uppercase opacity-50"
-            >
-                <span
-                    class="status-dot w-[6px] h-[6px] rounded-full bg-[#f0e000] shrink-0"
-                ></span>
-                Setting up Doxygen is a bitch
-            </div>
-        </div>
-
-        <!-- BODY -->
-        <div
-            class="grid grid-cols-1 sm:grid-cols-[1fr_220px] lg:grid-cols-[1fr_280px]"
-        >
-            <!-- LEFT -->
-            <div
-                class="docs-left flex flex-col justify-center gap-10 px-6 py-10 sm:px-8 sm:py-12 lg:px-14 lg:py-16 bg-[#f5f0e8] border-b-4 sm:border-b-0 sm:border-r-4 border-black"
-            >
-                <div class="flex items-center gap-3">
-                    <span class="w-9 h-1 bg-black block"></span>
+                <div class="flex flex-col gap-5">
                     <span
-                        class="text-[0.65rem] tracking-[0.2em] uppercase opacity-50"
-                        >Documentation</span
+                        class="text-[0.65rem] tracking-[0.22em] uppercase text-[#f0e000]"
                     >
-                </div>
-
-                <h1
-                    class="coming-title font-[\'Bebas_Neue\',sans-serif] tracking-[0.03em] text-black m-0"
-                    style="font-family:'Bebas Neue',sans-serif;"
-                >
-                    COM<span class="yl">ING</span><br />
-                    SO<span class="yl">ON</span>
-                </h1>
-
-                <p
-                    class="m-0 text-[0.78rem] leading-[1.8] opacity-55 max-w-[44ch] border-l-4 border-black pl-5"
-                    style="font-family:'Space Mono',monospace;"
-                >
-                    We're writing the docs as we build the compiler — every
-                    phase, every decision is documented in public. Check back
-                    soon or follow along on GitHub.
-                </p>
-            </div>
-
-            <!-- RIGHT sidebar -->
-            <div class="docs-right flex flex-col bg-[#f5f0e8]">
-                <div
-                    class="info-block flex flex-col gap-[0.4rem] flex-1 p-5 border-b-4 border-black"
-                >
-                    <span
-                        class="text-[0.58rem] tracking-[0.18em] uppercase opacity-40"
-                        style="font-family:'Space Mono',monospace;">Phase</span
-                    >
-                    <span
-                        class="text-[1.75rem] sm:text-[1.5rem] lg:text-[1.9rem] leading-none tracking-[0.06em]"
-                        style="font-family:'Bebas Neue',sans-serif;">Lexer</span
-                    >
-                    <span
-                        class="text-[0.58rem] leading-[1.6] opacity-40"
-                        style="font-family:'Space Mono',monospace;"
-                        >Tokenisation complete</span
-                    >
-                </div>
-                <div
-                    class="info-block flex flex-col gap-[0.4rem] flex-1 p-5 border-b-4 border-black"
-                >
-                    <span
-                        class="text-[0.58rem] tracking-[0.18em] uppercase opacity-40"
-                        style="font-family:'Space Mono',monospace;"
-                        >Coverage</span
-                    >
-                    <span
-                        class="text-[1.75rem] sm:text-[1.5rem] lg:text-[1.9rem] leading-none tracking-[0.06em]"
-                        style="font-family:'Bebas Neue',sans-serif;">12%</span
-                    >
-                    <span
-                        class="text-[0.58rem] leading-[1.6] opacity-40"
-                        style="font-family:'Space Mono',monospace;"
-                        >Doc comments written</span
-                    >
-                </div>
-                <div class="info-block flex flex-col gap-[0.4rem] flex-1 p-5">
-                    <span
-                        class="text-[0.58rem] tracking-[0.18em] uppercase opacity-40"
-                        style="font-family:'Space Mono',monospace;"
-                        >Last push</span
-                    >
-                    <span
-                        class="text-[1.75rem] sm:text-[1.5rem] lg:text-[1.9rem] leading-none tracking-[0.06em]"
+                        Generated API Docs
+                    </span>
+                    <h1
+                        class="docs-title m-0 tracking-[0.04em]"
                         style="font-family:'Bebas Neue',sans-serif;"
-                        >2d ago</span
                     >
-                    <span
-                        class="text-[0.58rem] leading-[1.6] opacity-40"
-                        style="font-family:'Space Mono',monospace;"
-                        >Parser in progress</span
-                    >
+                        Docs
+                    </h1>
+                    <p class="m-0 text-[0.75rem] leading-[1.7] opacity-65 max-w-[38ch]">
+                        Built from the Markdown files generated in
+                        public/docs before the Astro app is built.
+                    </p>
                 </div>
-            </div>
-        </div>
 
-        <!-- BOTTOM BAR -->
-        <div
-            class="grid grid-cols-1 sm:grid-cols-[1fr_auto] bg-[#f0e000] border-t-4 border-black"
-        >
-            <div
-                class="flex items-center px-6 py-4 text-[0.65rem] tracking-[0.12em] uppercase border-b-4 sm:border-b-0 sm:border-r-4 border-black"
-                style="font-family:'Space Mono',monospace;"
-            >
-                In the meantime, check out the slides and our weekly meetings
-                for progress updates
+                <span class="text-[0.65rem] tracking-[0.18em] uppercase opacity-50">
+                    {docs.length} modules
+                </span>
             </div>
-            <a
-                href="/slides"
-                class="flex items-center justify-center gap-2 px-6 py-4 no-underline text-black whitespace-nowrap transition-colors duration-[120ms] hover:bg-black hover:text-[#f0e000]"
-                style="font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:0.1em;"
-                >View Slides →</a
-            >
-        </div>
+
+            <div class="bg-[#f5f0e8]">
+                <div
+                    class="grid border-b-4 border-black bg-[#f0e000]"
+                    style="grid-template-columns: 56px 1fr;"
+                >
+                    <div
+                        class="grid place-items-center border-r-4 border-black py-3 text-[0.75rem] tracking-[0.16em]"
+                        style="font-family:'Bebas Neue',sans-serif;"
+                    >
+                        #
+                    </div>
+                    <div
+                        class="flex items-center px-5 py-3 text-[0.75rem] tracking-[0.16em]"
+                        style="font-family:'Bebas Neue',sans-serif;"
+                    >
+                        Module
+                    </div>
+                </div>
+
+                {docs.length === 0 && (
+                    <div class="px-6 py-16 opacity-50">
+                        No generated docs found.
+                    </div>
+                )}
+
+                {docs.map((doc, i) => (
+                    <a
+                        href={doc.href}
+                        class="doc-card grid no-underline text-black border-b-4 border-black transition-colors duration-[150ms]"
+                        style="grid-template-columns: 56px 1fr auto;"
+                    >
+                        <span
+                            class="doc-index grid place-items-center border-r-4 border-black bg-[#f5f0e8] py-5 transition-colors duration-[150ms]"
+                            style="font-family:'Bebas Neue',sans-serif; font-size:1.35rem;"
+                        >
+                            {(i + 1).toString().padStart(2, "0")}
+                        </span>
+                        <span class="flex flex-col gap-1 min-w-0 px-5 py-4">
+                            <span
+                                class="tracking-[0.06em]"
+                                style="font-family:'Bebas Neue',sans-serif; font-size:1.8rem;"
+                            >
+                                {doc.name}
+                            </span>
+                            <span class="text-[0.65rem] opacity-50 break-all">
+                                {doc.href}
+                            </span>
+                        </span>
+                        <span
+                            class="hidden sm:grid place-items-center px-6 text-3xl"
+                            style="font-family:'Bebas Neue',sans-serif;"
+                        >
+                            -&gt;
+                        </span>
+                    </a>
+                ))}
+            </div>
+        </section>
     </main>
 </Default>
