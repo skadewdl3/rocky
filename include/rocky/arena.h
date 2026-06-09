@@ -7,6 +7,7 @@
 #ifndef ROCKY_ARENA_H
 #define ROCKY_ARENA_H
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

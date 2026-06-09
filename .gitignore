@@ -15,3 +15,8 @@ tests/lit/.lit_test_times.txt
 tests/lit/**/Output/
 
 docs/
+
+docs/
+
+# local file used to track self study stuff
+/PENDING.md

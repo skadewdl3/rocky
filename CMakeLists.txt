@@ -18,10 +18,13 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(external/unity/src)
+include_directories(external)
 add_definitions(${LLVM_DEFINITIONS})
 link_directories(${LLVM_LIBRARY_DIRS})
 
-add_executable(rocky src/main.c src/debug.c src/lexer.c src/parser.c src/jit.c)
+set(ARGPARSE_SOURCES external/argparse/argparse.c)
+
+add_executable(rocky src/main.c src/cli.c src/debug.c src/lexer.c src/parser.c src/jit.c ${ARGPARSE_SOURCES})
 target_include_directories(rocky PUBLIC include)
 
 if(WIN32)
@@ -83,12 +86,14 @@ foreach(test_src ${TEST_SOURCES})
     add_executable(${test_name}
         ${test_src}
         ${SRC_FILES}
+        ${ARGPARSE_SOURCES}
         external/unity/src/unity.c
     )
 
     target_include_directories(${test_name} PUBLIC
         include
         external/unity/src
+        external/argparse
     )
 
     if(WIN32)

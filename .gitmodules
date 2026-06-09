@@ -1,3 +1,6 @@
 [submodule "external/unity"]
 	path = external/unity
 	url = https://github.com/ThrowTheSwitch/Unity.git
+[submodule "external/argparse"]
+	path = external/argparse
+	url = https://github.com/cofyc/argparse.git
