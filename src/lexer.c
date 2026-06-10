@@ -7,8 +7,8 @@
 
 //initialize lexer with source code
 void lexer_init(Lexer *lexer, const char *source){
-    
-    lexer->start=source;  
+
+    lexer->start=source;
     lexer->current=source;
 
     lexer->line=1;
@@ -20,7 +20,7 @@ static bool isAtEnd(Lexer *lexer){
     return *lexer->current == '\0';
 }
 
-//read next char, consume and return 
+//read next char, consume and return
 static char lexer_advance(Lexer *lexer){
     if(*lexer->current == '\n'){
         lexer->line++;
@@ -63,7 +63,7 @@ static void skip_whitespace(Lexer *lexer){
                 if(peekNext(lexer)=='/'){
                     while(peek(lexer)!='\n' && !isAtEnd(lexer)){
                         lexer_advance(lexer);
-                    } 
+                    }
                 }else{
                     return;
                 }
@@ -71,14 +71,14 @@ static void skip_whitespace(Lexer *lexer){
             default:
                 return;
 
-        }
+        }int *lexer;
     }
 }
 
-//create token 
+//create token
 static Token make_token(Lexer *lexer, TokenKind type){
-    
-    Token token;  
+
+    Token token;
     token.type=type;
     token.start=lexer->start;
     token.length = (int)(lexer->current - lexer->start);
@@ -87,7 +87,7 @@ static Token make_token(Lexer *lexer, TokenKind type){
 
 }
 
-//lexeme points to the error message string 
+//lexeme points to the error message string
 static Token errorToken(Lexer *lexer, const char* message){
     Token token;
     token.type=TOKEN_ERROR;
@@ -142,11 +142,20 @@ static TokenKind checkKeyword(Lexer *lexer, int start, int length, const char* r
 }
 
 //for recognizing keywords
-static TokenKind identifierType(Lexer *lexer){ 
-  
+static TokenKind identifierType(Lexer *lexer){
+
   switch(lexer->start[0]){
+    case 'b': return checkKeyword(lexer, 1, 3, "ool", TOKEN_TYPE_BOOL);
     case 'e': return checkKeyword(lexer, 1, 3, "lse", TOKEN_ELSE);
-    case 'i': return checkKeyword(lexer, 1, 1, "f", TOKEN_IF);
+    case 'i': {
+        if (lexer->current - lexer->start > 1) {
+            switch (lexer->start[1]) {
+                case 'f' : return checkKeyword(lexer, 1, 1, "f", TOKEN_IF);
+                case 'n' : return checkKeyword(lexer, 2, 1, "t", TOKEN_TYPE_INT);
+            }
+        }
+    }
+    case 's' : return checkKeyword(lexer,1, 5, "ize_t",TOKEN_TYPE_SIZE_T);
     case 'p': return checkKeyword(lexer, 1, 4, "rint", TOKEN_PRINT);
     case 'r': return checkKeyword(lexer, 1, 5, "eturn", TOKEN_RETURN);
     case 'w': return checkKeyword(lexer, 1, 4, "hile", TOKEN_WHILE);
@@ -156,6 +165,8 @@ static TokenKind identifierType(Lexer *lexer){
           case 'a': return checkKeyword(lexer, 2, 3, "lse", TOKEN_FALSE);
           case 'o': return checkKeyword(lexer, 2, 1, "r", TOKEN_FOR);
           case 'n': return checkKeyword(lexer, 2, 0, "",TOKEN_FUNCTION);
+          case 'l': return checkKeyword(lexer, 2, 3, "oat",TOKEN_TYPE_FLOAT);
+
         }
       }
       break;
@@ -184,11 +195,14 @@ Token lexer_next_token(Lexer *lexer){
     char c = *lexer->current;
     lexer_advance(lexer);
 
-    if(isalpha(c) || c =='_') return identifier(lexer); 
+    if(isalpha(c) || c =='_') return identifier(lexer);
 
     if(isdigit(c)) return number(lexer);
 
     switch(c){
+
+        case ':':
+        return make_token(lexer,TOKEN_COLON);
 
         case '+':
             return make_token(lexer, match(lexer, '+') ? TOKEN_PLUS_PLUS : match(lexer, '=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);
@@ -201,7 +215,7 @@ Token lexer_next_token(Lexer *lexer){
 
         case '/':
             return make_token(lexer, TOKEN_SLASH);
-        
+
         case '%':
             return make_token(lexer, TOKEN_PERCENT);
 
@@ -213,28 +227,28 @@ Token lexer_next_token(Lexer *lexer){
 
         case ')':
             return make_token(lexer, TOKEN_RPAREN);
-        
+
         case '{':
             return make_token(lexer, TOKEN_LBRACE);
 
         case '}':
             return make_token(lexer, TOKEN_RBRACE);
-        
+
         case ',':
             return make_token(lexer, TOKEN_COMMA);
-        
+
         case ';':
             return make_token(lexer, TOKEN_SEMICOLON);
 
         case '=':
             return make_token(lexer, match(lexer, '=')?TOKEN_EQEQ:TOKEN_EQUAL);
-        
+
         case '!':
             return make_token(lexer, match(lexer, '=')?TOKEN_BANGEQ:TOKEN_BANG);
-        
+
         case '<':
             return make_token(lexer, match(lexer, '=') ? TOKEN_LTEQ : match(lexer, '<') ? TOKEN_LSHIFT : TOKEN_LT);
-        
+
         case '>':
             return make_token(lexer, match(lexer, '=') ? TOKEN_GTEQ : match(lexer, '>') ? TOKEN_RSHIFT : TOKEN_GT );
 
@@ -243,14 +257,14 @@ Token lexer_next_token(Lexer *lexer){
 
         case '|':
             return make_token(lexer, match(lexer, '|')?TOKEN_PIPEPIPE:TOKEN_PIPE);
-        
+
         case '~':
             return make_token(lexer, TOKEN_TILDE);
-        
+
         case '"':
             return string(lexer);  //check test case
 
-        default : 
+        default :
             return make_token(lexer, TOKEN_INVALID);
     }
 

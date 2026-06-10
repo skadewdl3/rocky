@@ -4,7 +4,7 @@
 #include <rocky/parser/ast.h>
 #include <rocky/arena.h>
 
-typedef struct {
+typedef struct Parser {
     const Token *tokens;
     int          pos;
     int          len;
