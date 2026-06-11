@@ -9,6 +9,8 @@
 #include "rocky/lexer/token.h"
 
 Stmt* parse_stmt(Parser* P);
+Stmt* parse_variable_declaration(Parser* P);
+
 /* ── Allocator ───────────────────────────────────────────── */
 
 Stmt *alloc_stmt(Parser *p, StmtKind kind, Token tok) {
@@ -19,13 +21,20 @@ Stmt *alloc_stmt(Parser *p, StmtKind kind, Token tok) {
     s->next  = NULL;
     return s;
 }
-Param* alloc_param(Parser* p,Token name,Token type){
+Param* alloc_param(Parser* p,Token name,TypeExpr* type){
     Param* param=arena_alloc(p->arena, sizeof(Param));
     memset(param, 0, sizeof(Param));
     param->name=name;
     param->next=NULL;
     param->type=type;
     return param;
+}
+
+TypeExpr *alloc_type_expr(Parser *p, TypeExprKind kind) {
+    TypeExpr *t = arena_alloc(p->arena, sizeof(TypeExpr));
+    memset(t, 0, sizeof(TypeExpr));
+    t->kind = kind;
+    return t;
 }
 
 static Expr *alloc_expr(Parser *p, ExprKind kind, Token tok) {
@@ -223,11 +232,50 @@ Expr *parse_expr(Parser *p, int min_bp) {
 
     return lhs;
 }
+TypeExpr* parse_type_expr(Parser* P){
+    Token t= peek(P);
+    TypeExpr* type=NULL;
+    if(t.type==TOKEN_FUNCTION){
+
+    }else{
+        switch (t.type) {
+            case TOKEN_TYPE_INT:
+            case TOKEN_TYPE_BOOL:
+            case TOKEN_TYPE_STRING:
+            case TOKEN_TYPE_SIZE_T:
+            case TOKEN_TYPE_FLOAT:
+                advance(P);
+                type=alloc_type_expr(P,TYPE_PRIMITIVE);
+                type->defi.primitive.primitive=t.type;
+                break;
+            default:
+                error(t);
+        }
+        while (peek(P).type == TOKEN_STAR) {
+            advance(P);
+            TypeExpr *ptr = alloc_type_expr(P, TYPE_POINTER);
+            ptr->defi.pointer.base = type;
+            type = ptr;
+        }
+    }
+    return type;
+}
 Stmt* parse_variable_assignment(Parser* P){
     Token t=advance(P);
     expect(P,TOKEN_EQUAL);
     Expr* expr=parse_expr(P,0);
     expect(P,TOKEN_SEMICOLON);
+    Stmt* S=alloc_stmt(P,STMT_ASSIGN,t);
+
+    S->defi.assign_stmt.name=t;
+    S->defi.assign_stmt.value=expr;
+
+    return S;
+}
+Stmt* parse_variable_assignment_without_semicolon(Parser* P){
+    Token t=advance(P);
+    expect(P,TOKEN_EQUAL);
+    Expr* expr=parse_expr(P,0);
     Stmt* S=alloc_stmt(P,STMT_ASSIGN,t);
 
     S->defi.assign_stmt.name=t;
@@ -286,24 +334,16 @@ Param* parse_params(Parser* P){
     Param* head=NULL;
     Param* traverse=head;
     if(peek(P).type==TOKEN_RPAREN){
+        advance(P);
         return NULL;
     }
     while(true){
         Token t=expect(P,TOKEN_IDENTIFIER);
         TokenKind type;
         expect(P,TOKEN_COLON);
-        Token adv=advance(P);
-        //Should just check if its one of the allowed types
-        switch(adv.type){
-            case TOKEN_TYPE_INT:
-            case TOKEN_TYPE_BOOL:
-            case TOKEN_TYPE_STRING:
-            case TOKEN_TYPE_SIZE_T:
-            case TOKEN_TYPE_FLOAT:
-                break;
-            default:
-                error(adv);
-        }
+        TypeExpr* adv=parse_type_expr(P);
+
+
         Param* param=alloc_param(P, t, adv);
         if(head==NULL){
             head=param;
@@ -338,9 +378,15 @@ Stmt* parse_while(Parser* P){
 Stmt* parse_for(Parser* P){
     Token t=advance(P);
     expect(P,TOKEN_LPAREN);
-    Stmt* declaration=parse_expr_stmt(P);
+    Stmt* declaration=NULL;
+    if(peek(P).type!=TOKEN_IDENTIFIER){
+        declaration=parse_variable_declaration(P);
+    }else{
+        declaration=parse_variable_assignment(P);
+    }
     Expr* cond=parse_expr(P,0);
-    Expr* update=parse_expr(P,0);
+    expect(P, TOKEN_SEMICOLON);
+    Stmt* update=parse_variable_assignment_without_semicolon(P);
     expect(P,TOKEN_RPAREN);
     Stmt* body=parse_stmt(P);
     Stmt* S=alloc_stmt(P,STMT_FOR,t);
@@ -393,29 +439,15 @@ Stmt* parse_break(Parser* P){
     return S;
 }
 Stmt* parse_variable_declaration(Parser* P){
-    Token t=advance(P);
+    TypeExpr *type=parse_type_expr(P);
     Token name=expect(P,TOKEN_IDENTIFIER);
+    expect(P,TOKEN_EQUAL);
     Expr* expr=NULL;
-    Token adv=advance(P);
-    Token type;
-    if(adv.type==TOKEN_EQUAL){
-       type=advance(P);
-        switch(type.type){
-            case TOKEN_TYPE_INT:
-            case TOKEN_TYPE_BOOL:
-            case TOKEN_TYPE_STRING:
-            case TOKEN_TYPE_SIZE_T:
-            case TOKEN_TYPE_FLOAT:
-            default:
-                error(adv);
-        }
-    }else if(adv.type!=TOKEN_SEMICOLON){
-        error(adv);
-    }
-    Stmt* S=alloc_stmt(P,STMT_DECLARATION,t);
+    expr=parse_expr(P,0);
+    expect(P,TOKEN_SEMICOLON);
+    Stmt* S=alloc_stmt(P,STMT_DECLARATION,name);
     S->defi.declaration_stmt.name=name;
     S->defi.declaration_stmt.type=type;
-    S->defi.declaration_stmt.name=name;
     S->defi.declaration_stmt.expr=expr;
     return S;
 }
@@ -423,24 +455,13 @@ Stmt* parse_variable_declaration(Parser* P){
 Stmt* parse_func(Parser* P){
     Token t=advance(P);
     Token name=expect(P,TOKEN_IDENTIFIER);
+
     Param* params=parse_params(P);
     Token adv=peek(P);
-    Token returnType;
+    TypeExpr* returnType=NULL;
     if(adv.type==TOKEN_COLON){
         adv=advance(P);
-        //Should just check if its one of the allowed types
-        returnType=advance(P);
-        switch(adv.type){
-            case TOKEN_TYPE_INT:
-            case TOKEN_TYPE_BOOL:
-            case TOKEN_TYPE_STRING:
-            case TOKEN_TYPE_SIZE_T:
-            case TOKEN_TYPE_FLOAT:
-                break;
-            default:
-                error(returnType);
-        }
-
+        returnType=parse_type_expr(P);
     }
     Stmt* body=parse_block(P);
     Stmt* S=alloc_stmt(P,STMT_FUNC,t);
