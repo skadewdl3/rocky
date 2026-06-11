@@ -496,8 +496,6 @@ Stmt* parse_stmt(Parser* P){
         }
         case TOKEN_CONTINUE:{
             return parse_continue(P);
-        }case TOKEN_FUNCTION:{
-            return parse_func(P);
         }
         case TOKEN_TYPE_INT:
         case TOKEN_TYPE_BOOL:
