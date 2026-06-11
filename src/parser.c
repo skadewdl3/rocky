@@ -529,7 +529,7 @@ Stmt* parseProgram(Parser* p){
     Stmt* head=NULL;
     Stmt* traverse=NULL;
     while(peek(p).type != TOKEN_EOF){
-        Stmt *s = parse_stmt(p);
+        Stmt *s = parse_top_level(p);
         if (head == NULL) {
             head = s;
             traverse = head;
