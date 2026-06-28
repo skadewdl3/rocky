@@ -151,7 +151,8 @@ expr
 primary
 ├─ literal
 │  ├─ integer
-│  └─ float
+│  ├─ float
+│  └─ String
 ├─ identifier
 └─ ( expr )
 ```
@@ -376,12 +377,22 @@ fn main() {
 }
 ```
 
-== Extern Include
+== Import
 
-Includes an external header via `#include <path>`.
+Loads a module via `import "filename": struct1, function1`.
 
 ```rust
-#include <stdio.h>
+import "string" : String, concat
+import "string" : *
+```
+
+== Extern
+
+Includes an external header via extern: fn name(parameters) : returnType.
+
+```rust
+extern: fn hello()
+extern: fn hello(i : int) : int
 ```
 
 == Literal
@@ -413,6 +424,16 @@ A decimal literal with digits and a dot, with or without trailing digits.
 3.14
 0.5
 10.
+```
+
+== String
+
+A series of characters enclose in double quotation marks
+
+```rust
+"hello@123"
+"Bye"
+" "
 ```
 
 == Identifier
@@ -541,7 +562,7 @@ Per-bit truth table:
 
 #table(
   columns: 3,
-  [$x_i$], [$y_i$], [$(x ^ y)_i$],
+  [$x_i$], [$y_i$], [$(x^y)_i$],
   [0], [0], [0],
   [0], [1], [1],
   [1], [0], [1],
