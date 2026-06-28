@@ -1,0 +1,11 @@
+name: Rebuild website
+on: [push]
+
+jobs:
+  webhook_push:
+    if: ${{ secrets.CLOUDFLARE_WEBHOOK_URL != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Push CF webhook
+        run: curl -d "" ${secrets.CLOUDFLARE_WEBHOOK_URL}
+        
