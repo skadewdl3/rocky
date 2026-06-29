@@ -74,7 +74,7 @@ void jit_add_dummy_functions(JITContext* ctx) {
     LLVMBuilderRef builder = LLVMCreateBuilderInContext(ctx->ctx);
     
     // Add printf
-    LLVMTypeRef printf_args[] = { LLVMPointerType(LLVMInt8Type(), 0) };
+    LLVMTypeRef printf_args[] = { LLVMPointerType(LLVMInt8TypeInContext(ctx->ctx), 0) };
     LLVMTypeRef printf_type = LLVMFunctionType(LLVMInt32TypeInContext(ctx->ctx), printf_args, 1, 1);
     LLVMValueRef printf_fn = LLVMAddFunction(module, "printf", printf_type);
     
