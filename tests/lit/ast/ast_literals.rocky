@@ -1,0 +1,13 @@
+// Run rocky with --dump-ast and check the printed AST.
+// %rocky is replaced with the path to rocky.exe by lit.
+// FileCheck compares the real output to the lines below.
+
+// RUN: %rocky --dump-ast -c "42" | FileCheck %s --check-prefix=INT
+// RUN: %rocky --dump-ast -c "3.14" | FileCheck %s --check-prefix=FLOAT
+// RUN: %rocky --dump-ast -c "true" | FileCheck %s --check-prefix=TRUE
+// RUN: %rocky --dump-ast -c "false" | FileCheck %s --check-prefix=FALSE
+
+// INT: 42
+// FLOAT: 3.140000
+// TRUE: true
+// FALSE: false

@@ -140,6 +140,7 @@ if(EXISTS "${LIT_TEST_ROOT}" AND LLVM_LIT AND FILECHECK_EXE)
             COMMAND ${LLVM_LIT}
                 -v
                 -Dparser=${FAKE_PARSER_BIN}
+                -Drocky=$<TARGET_FILE:rocky>
                 -Dfilecheck=${FILECHECK_EXE}
                 ${lit_src}
         )

@@ -202,7 +202,7 @@ void print_expr(const Expr* expr, int depth, int isLast, int sibling) {
         break;
 
         case EXPR_IDENT:
-        printf("%s\n", expr->as.ident.name);
+        printf("%.*s\n", expr->as.ident.len, expr->as.ident.name);
         break;
 
         case EXPR_UNARY:

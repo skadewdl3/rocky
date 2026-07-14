@@ -33,6 +33,7 @@ tests/
 ├── lexer.c             # Unity unit tests for the lexer
 ├── parser.c            # Unity unit tests for the parser/AST
 └── lit/                # Lit integration tests (.rocky files)
+    ├── ast/            # AST dump checks (uses %rocky --dump-ast)
     └── ir/             # IR generation tests
         └── add.rocky
 ```
@@ -75,18 +76,24 @@ int main(void) {
 ---
 
 ## Integration Testing with Lit
-
-Lit (LLVM Integrated Tester) is used for end-to-end testing, typically verifying that a given input produces the expected output (IR, assembly, etc.).
-
 ### Writing Lit Tests
 
 1. Create a .rocky file under tests/lit/.
 2. Add RUN: and CHECK: directives.
 
-- RUN: specifies the command to execute. Use %parser as a placeholder for the compiler/parser binary.
-- CHECK: specifies the expected output patterns.
+- RUN: the command to run. Use `%rocky` for the real rocky binary, or `%parser` for the fake IR helper.
+- CHECK: what the output should look like.
 
-**Example (tests/lit/ir/add.rocky):**
+**Example AST test (tests/lit/ast/ast_binary.rocky):**
+```
+// RUN: %rocky --dump-ast -c "1 + 2" | FileCheck %s --check-prefix=ADD
+
+// ADD: +
+// ADD-NEXT: ├── 1
+// ADD-NEXT: └── 2
+```
+
+**Example IR test (tests/lit/ir/add.rocky):**
 ```llvm
 // RUN: %parser %s | FileCheck %s
 
@@ -99,7 +106,7 @@ fn main() {
 }
 ```
 
-The build system automatically substitutes %parser with the path to the current build's fake_parser (or the real rocky compiler once implemented).
+CMake fills in `%rocky` and `%parser` with the real paths from your build folder.
 
 ---
 

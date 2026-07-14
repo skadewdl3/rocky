@@ -1,0 +1,28 @@
+// Check that binary ops and precedence dump correctly.
+//
+// Example tree for "1 + 2":
+//   +
+//   ├── 1
+//   └── 2
+
+// RUN: %rocky --dump-ast -c "1 + 2" | FileCheck %s --check-prefix=ADD
+// RUN: %rocky --dump-ast -c "1 + 2 * 3" | FileCheck %s --check-prefix=PRECEDENCE
+// RUN: %rocky --dump-ast -c "(1 + 2) * 3" | FileCheck %s --check-prefix=GROUPING
+
+// ADD: +
+// ADD-NEXT: ├── 1
+// ADD-NEXT: └── 2
+
+// * binds tighter than +, so this is 1 + (2 * 3)
+// PRECEDENCE: +
+// PRECEDENCE-NEXT: ├── 1
+// PRECEDENCE-NEXT: └── *
+// PRECEDENCE-NEXT:     ├── 2
+// PRECEDENCE-NEXT:     └── 3
+
+// Parens force (1 + 2) first, then * 3
+// GROUPING: *
+// GROUPING-NEXT: ├── +
+// GROUPING-NEXT: │   ├── 1
+// GROUPING-NEXT: │   └── 2
+// GROUPING-NEXT: └── 3
