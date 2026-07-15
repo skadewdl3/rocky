@@ -9,9 +9,8 @@
 #ifndef ROCKY_DEBUG_DEBUG_H
 #define ROCKY_DEBUG_DEBUG_H
 
-/* Importing structs and enums for Token and AST Nodes */
-#include "rocky/lexer/token.h"
-#include "rocky/parser/ast.h"
+#include <rocky/lexer/token.h>
+#include <rocky/parser/ast.h>
 
 /** @brief Bitmask enum for conditional printing of tokens */
 typedef enum {
