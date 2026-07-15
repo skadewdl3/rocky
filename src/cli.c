@@ -27,6 +27,7 @@ void rocky_cli_options_init(RockyCliOptions *options) {
 	options->inline_code = NULL;
 	options->dump_tokens = 0;
 	options->dump_ast = 0;
+	options->dump_symbol_table = 0;
 }
 
 void rocky_cli_print_usage(FILE *out, const char *program_name) {
@@ -63,6 +64,7 @@ RockyCliParseStatus rocky_cli_parse(
 		OPT_BOOLEAN('h', "help", &help_requested, "Show this help", NULL, 0, OPT_NONEG),
 		OPT_BOOLEAN(0, "dump-tokens", &options->dump_tokens, "Print lexer tokens", NULL, 0, 0),
 		OPT_BOOLEAN(0, "dump-ast", &options->dump_ast, "Print parser AST", NULL, 0, 0),
+		OPT_BOOLEAN(0, "dump-symbol-table", &options->dump_symbol_table, "Print symbol table", NULL, 0, 0),
 		OPT_STRING('c', NULL, &options->inline_code, "Inline source code input", rocky_cli_inline_code_cb, (intptr_t)&inline_code_count, 0),
 		OPT_END(),
 	};

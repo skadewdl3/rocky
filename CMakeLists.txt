@@ -24,7 +24,7 @@ link_directories(${LLVM_LIBRARY_DIRS})
 
 set(ARGPARSE_SOURCES external/argparse/argparse.c)
 
-add_executable(rocky src/main.c src/cli.c src/debug.c src/lexer.c src/parser.c src/jit.c ${ARGPARSE_SOURCES})
+add_executable(rocky src/main.c src/cli.c src/debug.c src/lexer.c src/parser.c src/jit.c src/symtable.c src/sema.c ${ARGPARSE_SOURCES})
 target_include_directories(rocky PUBLIC include)
 
 if(WIN32)
@@ -140,6 +140,7 @@ if(EXISTS "${LIT_TEST_ROOT}" AND LLVM_LIT AND FILECHECK_EXE)
             COMMAND ${LLVM_LIT}
                 -v
                 -Dparser=${FAKE_PARSER_BIN}
+                -Drocky=$<TARGET_FILE:rocky>
                 -Dfilecheck=${FILECHECK_EXE}
                 ${lit_src}
         )

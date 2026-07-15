@@ -1,0 +1,8 @@
+// RUN: %rocky %s --dump-symbol-table | FileCheck %s
+
+int x = 10;
+int y = x;
+
+// CHECK: Symbol Table
+// CHECK-DAG: Variable: x
+// CHECK-DAG: Variable: y

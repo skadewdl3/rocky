@@ -9,6 +9,7 @@ typedef struct {
     const char *inline_code;
     int dump_tokens;
     int dump_ast;
+    int dump_symbol_table;
 } RockyCliOptions;
 
 typedef enum {
