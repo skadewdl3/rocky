@@ -82,7 +82,7 @@ static void skip_whitespace(Lexer *lexer){
             default:
                 return;
 
-        }
+        }int *lexer;
     }
 }
 
@@ -156,8 +156,32 @@ static TokenKind checkKeyword(Lexer *lexer, int start, int length, const char* r
 static TokenKind identifierType(Lexer *lexer){
 
   switch(lexer->start[0]){
+    case 'b':{
+        if (lexer->current - lexer->start > 1) {
+            switch (lexer->start[1]) {
+                case 'o' : return checkKeyword(lexer, 2, 2, "ol", TOKEN_TYPE_BOOL);
+                case 'r' : return checkKeyword(lexer, 2, 3, "eak", TOKEN_BREAK);
+            }
+        }
+    }
+    case 'c': return checkKeyword(lexer, 1, 7, "ontinue",TOKEN_CONTINUE);
+
     case 'e': return checkKeyword(lexer, 1, 3, "lse", TOKEN_ELSE);
-    case 'i': return checkKeyword(lexer, 1, 1, "f", TOKEN_IF);
+    case 'i': {
+        if (lexer->current - lexer->start > 1) {
+            switch (lexer->start[1]) {
+                case 'f' : return checkKeyword(lexer, 1, 1, "f", TOKEN_IF);
+                case 'n' : return checkKeyword(lexer, 2, 1, "t", TOKEN_TYPE_INT);
+            }
+        }
+    }
+    case 's' :
+    if (lexer->current - lexer->start > 1) {
+        switch (lexer->start[1]) {
+            case 's' : return checkKeyword(lexer,2, 4, "ize_t",TOKEN_TYPE_SIZE_T);
+            case 't' : return checkKeyword(lexer,2, 4, "ring", TOKEN_TYPE_STRING);
+        }
+    }
     case 'p': return checkKeyword(lexer, 1, 4, "rint", TOKEN_PRINT);
     case 'r': return checkKeyword(lexer, 1, 5, "eturn", TOKEN_RETURN);
     case 'w': return checkKeyword(lexer, 1, 4, "hile", TOKEN_WHILE);
@@ -167,11 +191,11 @@ static TokenKind identifierType(Lexer *lexer){
           case 'a': return checkKeyword(lexer, 2, 3, "lse", TOKEN_FALSE);
           case 'o': return checkKeyword(lexer, 2, 1, "r", TOKEN_FOR);
           case 'n': return checkKeyword(lexer, 2, 0, "",TOKEN_FUNCTION);
+          case 'l': return checkKeyword(lexer, 2, 3, "oat",TOKEN_TYPE_FLOAT);
+
         }
       }
-      break;
     case 't': return checkKeyword(lexer, 1, 3, "rue", TOKEN_TRUE);
-      break;
   }
   return TOKEN_IDENTIFIER;
 }
@@ -201,6 +225,9 @@ Token lexer_next_token(Lexer *lexer){
     if(isdigit(c)) return number(lexer);
 
     switch(c){
+
+        case ':':
+        return make_token(lexer,TOKEN_COLON);
 
         case '+':
             return make_token(lexer, match(lexer, '+') ? TOKEN_PLUS_PLUS : match(lexer, '=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);

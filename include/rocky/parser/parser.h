@@ -12,7 +12,6 @@
 
 /** @brief Parser state over pre-tokenized input. */
 typedef struct {
-    /** @brief Token stream. */
     const Token *tokens;
     /** @brief Current token index. */
     int          pos;

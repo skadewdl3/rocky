@@ -11,10 +11,18 @@
 #include <stddef.h>
 
 typedef enum {
+    /*Literal Types */
+    TOKEN_TYPE_INT,
+    TOKEN_TYPE_FLOAT,
+    TOKEN_TYPE_STRING,
+    TOKEN_TYPE_BOOL,
+    TOKEN_TYPE_SIZE_T,
     /*  Literals  */
     TOKEN_INT,
     TOKEN_FLOAT,
     TOKEN_STRING,
+    TOKEN_BOOL,
+    TOKEN_SIZE_T,
 
     /*  Identifiers  */
     TOKEN_IDENTIFIER,
@@ -31,44 +39,46 @@ typedef enum {
     TOKEN_FUNCTION,
 
     /*  Operators  */
-    TOKEN_PLUS,      
-    TOKEN_MINUS,     
-    TOKEN_STAR,      
-    TOKEN_SLASH,     
-    TOKEN_PERCENT,   
+    TOKEN_PLUS,
+    TOKEN_MINUS,
+    TOKEN_STAR,
+    TOKEN_SLASH,
+    TOKEN_PERCENT,
     TOKEN_EQUAL,
     TOKEN_CARET,
     TOKEN_PIPE,
     TOKEN_AMP,
     TOKEN_BANG,
-    TOKEN_EQEQ,   
+    TOKEN_EQEQ,
     TOKEN_BANGEQ,
     TOKEN_LT,
     TOKEN_GT,
     TOKEN_LTEQ,
     TOKEN_GTEQ,
-    TOKEN_AMPAMP,      
+    TOKEN_AMPAMP,
     TOKEN_PIPEPIPE,
     TOKEN_LSHIFT,
     TOKEN_RSHIFT,
-    TOKEN_TILDE, 
+    TOKEN_TILDE,
     TOKEN_PLUS_PLUS,
     TOKEN_MINUS_MINUS,
     TOKEN_PLUS_EQUAL,
     TOKEN_MINUS_EQUAL,
-    
+
     /*  Parentheses and Grouping  */
     TOKEN_COMMA,
-    TOKEN_LPAREN,    
+    TOKEN_LPAREN,
     TOKEN_RPAREN,
     TOKEN_LBRACE,
     TOKEN_RBRACE,
 
     /*  Special  */
+    TOKEN_COLON,
     TOKEN_SEMICOLON,
     TOKEN_EOF,
     TOKEN_INVALID,
     TOKEN_ERROR
+
 
 } TokenKind;
 

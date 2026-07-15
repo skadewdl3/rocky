@@ -8,6 +8,8 @@
 #define ROCKY_ARENA_H
 
 #include <stdio.h>
+#include <rocky/lexer/token.h>
+#include <rocky/parser/ast.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
