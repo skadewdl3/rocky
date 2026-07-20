@@ -3,8 +3,8 @@
 #include <string.h>
 #include "rocky/parser/ast.h"
 #include "rocky/parser/nodes.h"
-#include "rocky/symtable.h"
-#include "rocky/sema.h"
+#include "rocky/parser/sema/symtable.h"
+#include "rocky/parser/sema/sema.h"
 
 
 static void visitStmt(Sema* sema, Stmt* stmt);

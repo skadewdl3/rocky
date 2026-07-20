@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <rocky/parser/nodes.h>
-#include <rocky/symtable.h>
+#include "rocky/parser/sema/symtable.h"
 
 //state of semantic analyzer
 typedef struct {

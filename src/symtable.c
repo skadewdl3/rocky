@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "rocky/symtable.h"
+#include "rocky/parser/sema/symtable.h"
 
 #define TABLE_MAX_LOAD 0.75
 #define GROW_CAPACITY(cap) ((cap) < 8 ? 8 : (cap) * 2)

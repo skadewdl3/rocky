@@ -12,8 +12,8 @@
 #include <rocky/debug.h>
 #include <rocky/lexer/lexer.h>
 #include <rocky/parser/parser.h>
-#include <rocky/sema.h>
-#include <rocky/symtable.h>
+#include "rocky/parser/sema/symtable.h"
+#include "rocky/parser/sema/sema.h"
 
 /* Max tokens we can store when parsing. */
 #define MAX_TOKENS 4096
@@ -115,7 +115,7 @@ static int run_sema(const char *source, int dump_sym_table) {
     arena_init(&arena, 64 * 1024);
     Parser parser;
     parser_init(&parser, tokens, n, &arena);
-    Stmt *program = parseProgram(&parser);
+    Stmt *program = parse_program(&parser);
 
     Sema sema;
     initSema(&sema);

@@ -525,7 +525,7 @@ Stmt* parse_top_level(Parser* P){
     }
 }
 
-Stmt* parseProgram(Parser* p){
+Stmt* parse_program(Parser* p){
     Stmt* head=NULL;
     Stmt* traverse=NULL;
     while(peek(p).type != TOKEN_EOF){
