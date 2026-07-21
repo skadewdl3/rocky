@@ -1,9 +1,3 @@
-/**
- * @file lexer.c
- * @brief Lexer implementation.
- * @ingroup Lexer
- */
-
 #include <rocky/lexer/token.h>
 #include <rocky/lexer/lexer.h>
 #include <ctype.h>
@@ -11,7 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-/** @copydoc lexer_init */
+//initialize lexer with source code
 void lexer_init(Lexer *lexer, const char *source){
 
     lexer->start=source;
@@ -22,11 +16,6 @@ void lexer_init(Lexer *lexer, const char *source){
 
 }
 
-
-/**
- * @brief Checks if lexer has reached end of input.
- * @param lexer Lexer state.
- */
 static bool isAtEnd(Lexer *lexer){
     return *lexer->current == '\0';
 }
@@ -207,7 +196,6 @@ static Token identifier(Lexer *lexer){
     return make_token(lexer, identifierType(lexer));
 }
 
-/** @copydoc lexer_next_token */
 Token lexer_next_token(Lexer *lexer){
 
     //skip whitespace

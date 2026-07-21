@@ -1,18 +1,12 @@
-/**
- * @file parser.c
- * @brief Pratt parser implementation.
- * @ingroup Parser
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-#include "rocky/parser/parser.h"
-#include "rocky/arena.h"
-#include "rocky/lexer/lexer.h"
-#include "rocky/parser/nodes.h"
-#include "rocky/lexer/token.h"
+#include <rocky/parser/parser.h>
+#include <rocky/arena.h>
+#include <rocky/lexer/lexer.h>
+#include <rocky/parser/nodes.h>
+#include <rocky/lexer/token.h>
 
 Stmt* parse_stmt(Parser* P);
 Stmt* parse_variable_declaration(Parser* P);
@@ -163,7 +157,6 @@ void parser_init(Parser *p, const Token *tokens, int len, Arena *arena) {
     p->arena  = arena;
 }
 
-/** @copydoc parse_expr */
 Expr *parse_expr(Parser *p, int min_bp) {
     Token  tok = advance(p);
     Expr  *lhs = NULL;
@@ -532,7 +525,7 @@ Stmt* parse_top_level(Parser* P){
     }
 }
 
-Stmt* parseProgram(Parser* p){
+Stmt* parse_program(Parser* p){
     Stmt* head=NULL;
     Stmt* traverse=NULL;
     while(peek(p).type != TOKEN_EOF){

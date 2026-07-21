@@ -12,6 +12,8 @@
 #include <rocky/debug.h>
 #include <rocky/lexer/lexer.h>
 #include <rocky/parser/parser.h>
+#include <rocky/parser/sema/symtable.h>
+#include <rocky/parser/sema/sema.h>
 
 /* Max tokens we can store when parsing. */
 #define MAX_TOKENS 4096
@@ -101,6 +103,37 @@ static int dump_ast(const char *source) {
     return 0;
 }
 
+static int run_sema(const char *source, int dump_sym_table) {
+    Token tokens[MAX_TOKENS];
+    int n = tokenize_all(source, tokens, MAX_TOKENS);
+    if (n < 0) {
+        fprintf(stderr, "error: too many tokens\n");
+        return 1;
+    }
+
+    Arena arena;
+    arena_init(&arena, 64 * 1024);
+    Parser parser;
+    parser_init(&parser, tokens, n, &arena);
+    Stmt *program = parse_program(&parser);
+
+    Sema sema;
+    initSema(&sema);
+    bool ok = semaCheck(&sema, program);
+
+    if (dump_sym_table) {
+        dumpSymbolTable(&sema.table);
+    }
+
+    if (!ok) {
+        fprintf(stderr, "%d error(s) found\n", sema.errors);
+    }
+
+    freeSema(&sema);
+    arena_free(&arena);
+    return ok ? 0 : 1;
+}
+
 int main(int argc, char **argv) {
     RockyCliOptions options;
     char errbuf[256] = {0};
@@ -140,6 +173,11 @@ int main(int argc, char **argv) {
 
     if (options.dump_ast) {
         rc = dump_ast(source);
+    }
+
+    if (options.dump_symbol_table) {
+        printf("dump_symbol_table = %d\n", options.dump_symbol_table);
+        rc = run_sema(source, 1);
     }
 
     free(file_source);
