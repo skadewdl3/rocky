@@ -21,7 +21,6 @@ typedef enum {
     TOKEN_IDENTIFIER,
     TOKEN_ELSE,
     TOKEN_IF,
-    TOKEN_PRINT,
     TOKEN_RETURN,
     TOKEN_WHILE,
     TOKEN_FALSE,

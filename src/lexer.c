@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <stdio.h>
 #include <rocky/lexer/lexer.h>
 #include <rocky/lexer/token.h>
 #include <stdbool.h>
@@ -186,8 +187,6 @@ static TokenKind identifier_type(Lexer* lexer) {
                 return check_keyword(lexer, 2, 4, "ring", TOKEN_TYPE_STRING);
             }
         }
-    case 'p':
-        return check_keyword(lexer, 1, 4, "rint", TOKEN_PRINT);
     case 'r':
         return check_keyword(lexer, 1, 5, "eturn", TOKEN_RETURN);
     case 'w':
@@ -215,6 +214,8 @@ static TokenKind identifier_type(Lexer* lexer) {
 static Token identifier(Lexer* lexer) {
     while (isalpha(peek(lexer)) || isdigit(peek(lexer)) || peek(lexer) == '_')
         lexer_advance(lexer);
+
+
     return make_token(lexer, identifier_type(lexer));
 }
 
@@ -232,8 +233,9 @@ Token lexer_next_token(Lexer* lexer) {
     char c = *lexer->current;
     lexer_advance(lexer);
 
-    if (isalpha(c) || c == '_')
+    if (isalpha(c) || c == '_') {
         return identifier(lexer);
+    }
 
     if (isdigit(c))
         return number(lexer);

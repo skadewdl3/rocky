@@ -96,8 +96,9 @@ static int dump_ast(const char* source) {
 
     Parser parser;
     parser_init(&parser, tokens, n, &arena);
-    Expr* root = parse_expr(&parser, 0);
-    print_expr(root, 0, 1, 0);
+    Stmt* root = parse_program(&parser);
+
+    // TODO: Call print_stmt
 
     arena_free(&arena);
     return 0;
