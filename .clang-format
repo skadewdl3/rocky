@@ -36,4 +36,7 @@ AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignTrailingComments: true
 ReflowComments: true
+
+# Filter not in src and include directories
+HeaderFilterRegex: '^.*/(src|include)/(?!.*external/).*\.h$'
 ...

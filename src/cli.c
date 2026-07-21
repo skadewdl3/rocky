@@ -10,7 +10,7 @@ static void write_err(char* errbuf, size_t errbuf_size, const char* message) {
     snprintf(errbuf, errbuf_size, "%s", message);
 }
 
-static int rocky_cli_inline_code_cb(struct Argparse* self, const struct ArgparseOption* option) {
+static int rocky_cli_inline_code_cb(struct argparse* self, const struct argparse_option* option) {
     int* count = (int*)(intptr_t)option->data;
     (*count)++;
     return 0;
@@ -56,7 +56,7 @@ RockyCliParseStatus rocky_cli_parse(int argc, char** argv, RockyCliOptions* opti
 
     int inline_code_count = 0;
     int help_requested = 0;
-    struct ArgparseOption parser_options[] = {
+    struct argparse_option parser_options[] = {
         OPT_BOOLEAN('h', "help", &help_requested, "Show this help", NULL, 0, OPT_NONEG),
         OPT_BOOLEAN(0, "dump-tokens", &options->dump_tokens, "Print lexer tokens", NULL, 0, 0),
         OPT_BOOLEAN(0, "dump-ast", &options->dump_ast, "Print parser AST", NULL, 0, 0),
@@ -67,7 +67,7 @@ RockyCliParseStatus rocky_cli_parse(int argc, char** argv, RockyCliOptions* opti
         OPT_END(),
     };
 
-    struct Argparse parser;
+    struct argparse parser;
     if (argparse_init(&parser, parser_options, ROCKY_CLI_USAGES, ARGPARSE_IGNORE_UNKNOWN_ARGS) !=
         0) {
         write_err(errbuf, errbuf_size, "internal error: failed to initialize parser");

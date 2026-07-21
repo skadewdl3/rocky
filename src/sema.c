@@ -10,12 +10,12 @@ static void visit_stmt(Sema* sema, Stmt* stmt);
 static void visit_expr(Sema* sema, Expr* expr);
 static void visit_declaration(Sema* sema, Stmt* stmt);
 
-void initSema(Sema* sema) {
+void init_sema(Sema* sema) {
     init_sym_table(&sema->table);
     sema->errors = 0;
 }
 
-void freeSema(Sema* sema) {
+void free_sema(Sema* sema) {
     free_sym_table(&sema->table);
 }
 
@@ -175,7 +175,7 @@ static void visit_declaration(Sema* sema, Stmt* stmt) {
     }
 }
 
-bool semaCheck(Sema* sema, Stmt* program) {
+bool sema_check(Sema* sema, Stmt* program) {
     if (program != NULL)
         visit_stmt_list(sema, program);
 
