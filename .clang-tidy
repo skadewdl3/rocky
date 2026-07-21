@@ -1,0 +1,68 @@
+Checks: >
+  -*,
+  readability-identifier-naming
+
+CheckOptions:
+  # Variables
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: lower_case
+
+  - key: readability-identifier-naming.ProtectedMemberCase
+    value: lower_case
+
+  - key: readability-identifier-naming.PublicMemberCase
+    value: lower_case
+
+  # Functions
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+
+  - key: readability-identifier-naming.MethodCase
+    value: lower_case
+
+  # Structs/classes
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+
+  # Typedefs / aliases
+  - key: readability-identifier-naming.TypedefCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+
+  # Enums
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+
+  # Constants
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+
+  - key: readability-identifier-naming.StaticConstantCase
+    value: UPPER_CASE
+
+  # Namespaces
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case

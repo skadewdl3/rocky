@@ -13,9 +13,9 @@
 /** @brief Stateful lexer cursor over an input source buffer. */
 typedef struct {
     /** @brief Start pointer of current lexeme. */
-    const char *start;
+    const char* start;
     /** @brief Current scanning cursor. */
-    const char *current;
+    const char* current;
     /** @brief Current 1-based line in source. */
     int line;
     /** @brief Current 1-based column in source. */
@@ -27,14 +27,14 @@ typedef struct {
  * @param lexer Lexer state output.
  * @param source Source input buffer.
  */
-void lexer_init(Lexer *lexer, const char *source);
+void lexer_init(Lexer* lexer, const char* source);
 
 /**
  * @brief Scans and returns the next token from source.
  * @param lexer Lexer to advance.
  * @return Next token with lexeme slice into source.
  */
-Token lexer_next_token(Lexer *lexer);
+Token lexer_next_token(Lexer* lexer);
 
 #endif
 

@@ -1,26 +1,26 @@
-/**
- * @file token.h
- * @brief Token definitions for the lexer.
- *
- * @ingroup Lexer
- */
-
 #ifndef ROCKY_LEXER_TOKEN_H
 #define ROCKY_LEXER_TOKEN_H
 
 #include <stddef.h>
 
 typedef enum {
+    /*Literal Types */
+    TOKEN_TYPE_INT,
+    TOKEN_TYPE_FLOAT,
+    TOKEN_TYPE_STRING,
+    TOKEN_TYPE_BOOL,
+    TOKEN_TYPE_SIZE_T,
     /*  Literals  */
     TOKEN_INT,
     TOKEN_FLOAT,
     TOKEN_STRING,
+    TOKEN_BOOL,
+    TOKEN_SIZE_T,
 
     /*  Identifiers  */
     TOKEN_IDENTIFIER,
     TOKEN_ELSE,
     TOKEN_IF,
-    TOKEN_PRINT,
     TOKEN_RETURN,
     TOKEN_WHILE,
     TOKEN_FALSE,
@@ -31,40 +31,41 @@ typedef enum {
     TOKEN_FUNCTION,
 
     /*  Operators  */
-    TOKEN_PLUS,      
-    TOKEN_MINUS,     
-    TOKEN_STAR,      
-    TOKEN_SLASH,     
-    TOKEN_PERCENT,   
+    TOKEN_PLUS,
+    TOKEN_MINUS,
+    TOKEN_STAR,
+    TOKEN_SLASH,
+    TOKEN_PERCENT,
     TOKEN_EQUAL,
     TOKEN_CARET,
     TOKEN_PIPE,
     TOKEN_AMP,
     TOKEN_BANG,
-    TOKEN_EQEQ,   
+    TOKEN_EQEQ,
     TOKEN_BANGEQ,
     TOKEN_LT,
     TOKEN_GT,
     TOKEN_LTEQ,
     TOKEN_GTEQ,
-    TOKEN_AMPAMP,      
+    TOKEN_AMPAMP,
     TOKEN_PIPEPIPE,
     TOKEN_LSHIFT,
     TOKEN_RSHIFT,
-    TOKEN_TILDE, 
+    TOKEN_TILDE,
     TOKEN_PLUS_PLUS,
     TOKEN_MINUS_MINUS,
     TOKEN_PLUS_EQUAL,
     TOKEN_MINUS_EQUAL,
-    
+
     /*  Parentheses and Grouping  */
     TOKEN_COMMA,
-    TOKEN_LPAREN,    
+    TOKEN_LPAREN,
     TOKEN_RPAREN,
     TOKEN_LBRACE,
     TOKEN_RBRACE,
 
     /*  Special  */
+    TOKEN_COLON,
     TOKEN_SEMICOLON,
     TOKEN_EOF,
     TOKEN_INVALID,
@@ -72,21 +73,15 @@ typedef enum {
 
 } TokenKind;
 
-/**
- * @brief Represents a single token in the source code.
- *
- * Lexeme is represented as a slice (start pointer + length)
- * into the original source buffer.
- */
+/* Lexeme is represented as a slice (start pointer+length) into original source buffer */
 typedef struct {
-    /** @brief Token category. */
-    TokenKind type;
+    TokenKind type; // type of token
 
-    const char *start;  /**< Pointer to first character of lexeme */
-    size_t length;      /**< Length of lexeme */
+    const char* start; // pointer to first character of lexeme
+    size_t length;     // length of lexeme
 
-    int line;           /**< Line number where the token appears */
-    int column;         /**< Column number where the token starts */
+    int line;   // line no.
+    int column; // column no.
 
 } Token;
 

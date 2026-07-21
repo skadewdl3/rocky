@@ -1,0 +1,42 @@
+---
+BasedOnStyle: LLVM
+
+# Indentation
+UseTab: Never
+IndentWidth: 4
+ContinuationIndentWidth: 4
+TabWidth: 4
+
+# Braces
+BreakBeforeBraces: Attach
+
+# Line length
+ColumnLimit: 100
+
+# Pointer/reference style
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Functions
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: Yes
+
+# Control statements
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Includes
+SortIncludes: CaseSensitive
+IncludeBlocks: Preserve
+
+# Misc
+SpaceBeforeParens: ControlStatements
+Cpp11BracedListStyle: true
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignTrailingComments: true
+ReflowComments: true
+
+# Filter not in src and include directories
+HeaderFilterRegex: '^.*/(src|include)/(?!.*external/).*\.h$'
+...

@@ -42,8 +42,8 @@ void print_token(Token* token, TokenPrintFlags flags);
  * @brief Prints an expression tree using ASCII connectors.
  * @param expr Root expression to print.
  * @param depth Current depth in the recursion.
- * @param isLast Non-zero if node is last child at its level.
+ * @param is_last Non-zero if node is last child at its level.
  * @param sibling Bitmask describing ancestor sibling structure.
  */
-void print_expr(const Expr* expr, int depth, int isLast, int sibling);
+void print_expr(const Expr* expr, int depth, int is_last, int sibling);
 #endif

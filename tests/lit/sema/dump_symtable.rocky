@@ -1,0 +1,11 @@
+// RUN: %rocky %s --dump-symbol-table | FileCheck %s
+
+fn foo() {}
+
+fn main() {
+    int x = 10;
+}
+
+// CHECK: Symbol Table
+// CHECK-DAG: Function: foo
+// CHECK-DAG: Function: main
