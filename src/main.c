@@ -12,15 +12,15 @@
 #include <rocky/debug.h>
 #include <rocky/lexer/lexer.h>
 #include <rocky/parser/parser.h>
-#include <rocky/parser/sema/symtable.h>
 #include <rocky/parser/sema/sema.h>
+#include <rocky/parser/sema/symtable.h>
 
 /* Max tokens we can store when parsing. */
 #define MAX_TOKENS 4096
 
 /* Read a whole file into a string. Caller must free() it. */
-static char *read_file(const char *path) {
-    FILE *f = fopen(path, "rb");
+static char* read_file(const char* path) {
+    FILE* f = fopen(path, "rb");
     if (!f) {
         return NULL;
     }
@@ -34,7 +34,7 @@ static char *read_file(const char *path) {
         return NULL;
     }
 
-    char *buf = malloc((size_t)size + 1);
+    char* buf = malloc((size_t)size + 1);
     if (!buf) {
         fclose(f);
         return NULL;
@@ -47,7 +47,7 @@ static char *read_file(const char *path) {
 }
 
 /* Turn source code into tokens. Returns how many tokens we got. */
-static int tokenize_all(const char *source, Token *out, int cap) {
+static int tokenize_all(const char* source, Token* out, int cap) {
     Lexer lexer;
     lexer_init(&lexer, source);
 
@@ -66,7 +66,7 @@ static int tokenize_all(const char *source, Token *out, int cap) {
 }
 
 /* Print every token (for --dump-tokens). */
-static void dump_tokens(const char *source) {
+static void dump_tokens(const char* source) {
     Lexer lexer;
     lexer_init(&lexer, source);
 
@@ -83,7 +83,7 @@ static void dump_tokens(const char *source) {
  * Parse source into an AST tree and print it.
  * So its like : tokens -> parse_expr -> print_expr
  */
-static int dump_ast(const char *source) {
+static int dump_ast(const char* source) {
     Token tokens[MAX_TOKENS];
     int n = tokenize_all(source, tokens, MAX_TOKENS);
     if (n < 0) {
@@ -96,14 +96,14 @@ static int dump_ast(const char *source) {
 
     Parser parser;
     parser_init(&parser, tokens, n, &arena);
-    Expr *root = parse_expr(&parser, 0);
+    Expr* root = parse_expr(&parser, 0);
     print_expr(root, 0, 1, 0);
 
     arena_free(&arena);
     return 0;
 }
 
-static int run_sema(const char *source, int dump_sym_table) {
+static int run_sema(const char* source, int dump_sym_table) {
     Token tokens[MAX_TOKENS];
     int n = tokenize_all(source, tokens, MAX_TOKENS);
     if (n < 0) {
@@ -115,32 +115,31 @@ static int run_sema(const char *source, int dump_sym_table) {
     arena_init(&arena, 64 * 1024);
     Parser parser;
     parser_init(&parser, tokens, n, &arena);
-    Stmt *program = parse_program(&parser);
+    Stmt* program = parse_program(&parser);
 
     Sema sema;
-    initSema(&sema);
-    bool ok = semaCheck(&sema, program);
+    init_sema(&sema);
+    bool ok = sema_check(&sema, program);
 
     if (dump_sym_table) {
-        dumpSymbolTable(&sema.table);
+        dump_symbol_table(&sema.table);
     }
 
     if (!ok) {
         fprintf(stderr, "%d error(s) found\n", sema.errors);
     }
 
-    freeSema(&sema);
+    free_sema(&sema);
     arena_free(&arena);
     return ok ? 0 : 1;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     RockyCliOptions options;
     char errbuf[256] = {0};
 
     /* read command line flags (-c, --dump-ast, and so on...) */
-    RockyCliParseStatus status =
-        rocky_cli_parse(argc, argv, &options, errbuf, sizeof(errbuf));
+    RockyCliParseStatus status = rocky_cli_parse(argc, argv, &options, errbuf, sizeof(errbuf));
 
     if (status == ROCKY_CLI_PARSE_HELP) {
         return 0;
@@ -152,8 +151,8 @@ int main(int argc, char **argv) {
     }
 
     /* Get the source code (from -c or from a file) */
-    char *file_source = NULL;
-    const char *source = options.inline_code;
+    char* file_source = NULL;
+    const char* source = options.inline_code;
 
     if (!source) {
         file_source = read_file(options.input_file);

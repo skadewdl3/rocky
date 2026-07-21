@@ -72,18 +72,17 @@ typedef enum {
     TOKEN_INVALID,
     TOKEN_ERROR
 
-
 } TokenKind;
 
 /* Lexeme is represented as a slice (start pointer+length) into original source buffer */
 typedef struct {
-    TokenKind type;     // type of token
+    TokenKind type; // type of token
 
-    const char *start;  // pointer to first character of lexeme
-    size_t length;      // length of lexeme
+    const char* start; // pointer to first character of lexeme
+    size_t length;     // length of lexeme
 
-    int line;           // line no.
-    int column;         // column no.
+    int line;   // line no.
+    int column; // column no.
 
 } Token;
 

@@ -21,16 +21,16 @@ typedef enum {
 } TokenFlags;
 
 /** @brief Convert TokenType enum to a human-readable string. */
-const char* tokenTypeStr(TokenType type);
+const char* token_type_str(TokenKind type);
 
 /** @brief Convert UnaryOp enum to a human-readable string. */
-const char* unaryOpStr(UnaryOp op);
+const char* unary_op_str(UnaryOp op);
 
 /** @brief Convert TypeKind enum to a human-readable string. */
-const char* typeStr(TypeKind t);
+const char* type_str(TypeKind t);
 
 /** @brief Convert BinaryOP enum to a human-readable string. */
-const char* binaryOpStr(BinaryOp op);
+const char* binary_op_str(BinaryOp op);
 
 /** Diagnostic printer for lexer
  *
@@ -38,18 +38,18 @@ const char* binaryOpStr(BinaryOp op);
  * @param flags Bitmask specifying which fields to print (KIND, LEXEME, LINE, COL).
  * Sample usage: printToken(token, KIND | LINE) will print the token type and its line number.
  * */
-void printToken(Token* token, unsigned int flags);
+void print_token(Token* token, unsigned int flags);
 
 /** Diagnostic printer for AST nodes
  *
  * @param expr Pointer to the Expr struct.
  * @param depth Level of the current Expr in AST node hierarchy.
- * @param isLast Non-zero if this node is the last child of its parent.
- * @param sibling Bitmask tracking which ancestor levels were the last child, used for drawing tree branches correctly.
- * Sample Usage: printExpr(expr, 0, 1, 0);
+ * @param is_last Non-zero if this node is the last child of its parent.
+ * @param sibling Bitmask tracking which ancestor levels were the last child, used for drawing tree
+ * branches correctly. Sample Usage: printExpr(expr, 0, 1, 0);
  * */
-void printExpr(const Expr* expr, int depth, int isLast, int sibling);
-void printAll(void);
+void print_expr(const Expr* expr, int depth, int is_last, int sibling);
+void print_all(void);
 #endif
 
 /** @} */

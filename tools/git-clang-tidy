@@ -1,0 +1,554 @@
+#!/usr/bin/env python
+# === Adapted from diff-clang-tidy -----------------------------------------===#
+#
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# ===-----------------------------------------------------------------------===#
+
+r"""
+git clang-tidy
+==============
+
+This is `diff-clang-tidy.py` adapted to be runnable directly as a git
+subcommand: `git clang-tidy`. It runs clang-tidy on the lines changed in a
+diff and prints diagnostics for only those lines -- useful for spotting
+clang-tidy regressions introduced by a patch, a branch, or your working tree.
+
+Install it by putting this file (named exactly `git-clang-tidy`, no
+extension) somewhere on your PATH and making it executable:
+
+  cp git-clang-tidy /usr/local/bin/git-clang-tidy
+  chmod +x /usr/local/bin/git-clang-tidy
+
+or, without touching PATH, register it as a git alias:
+
+  git config --global alias.clang-tidy '!python3 /absolute/path/to/git-clang-tidy'
+
+Usage, from anywhere inside a git repo:
+
+  git clang-tidy                          # working tree + index vs HEAD
+  git clang-tidy --staged                 # staged (index) changes only
+  git clang-tidy main                     # working tree vs 'main'
+  git clang-tidy HEAD~3..HEAD             # a specific commit range
+  git clang-tidy -fix -checks=-*,modernize-use-override
+  git clang-tidy -- -std=c++17            # pass extra args to clang-tidy
+
+It also still works in the original pipe-based mode, unchanged, so existing
+CI scripts keep working:
+
+  git diff -U0 HEAD^ | git-clang-tidy -p1
+  svn diff --diff-cmd=diff -x-U0 | git-clang-tidy -fix -checks=-*,modernize-use-override
+
+When a diff is piped in on stdin, that diff is used as-is (original
+behavior, including the `-p` prefix-stripping option). When nothing is
+piped in -- i.e. you just typed `git clang-tidy` -- the diff is generated
+for you from git, and clang-tidy is run from the repository's top level so
+that file paths line up.
+"""
+
+import argparse
+import glob
+import json
+import multiprocessing
+import os
+import queue
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
+import traceback
+from pathlib import Path
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
+
+def run_tidy(task_queue, lock, timeout, failed_files):
+    watchdog = None
+    while True:
+        command = task_queue.get()
+        try:
+            proc = subprocess.Popen(
+                command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+
+            if timeout is not None:
+                watchdog = threading.Timer(timeout, proc.kill)
+                watchdog.start()
+
+            stdout, stderr = proc.communicate()
+            if proc.returncode != 0:
+                if proc.returncode < 0:
+                    msg = "Terminated by signal %d : %s\n" % (
+                        -proc.returncode,
+                        " ".join(command),
+                    )
+                    stderr += msg.encode("utf-8")
+                failed_files.append(command)
+
+            with lock:
+                sys.stdout.write(stdout.decode("utf-8") + "\n")
+                sys.stdout.flush()
+                if stderr:
+                    sys.stderr.write(stderr.decode("utf-8") + "\n")
+                    sys.stderr.flush()
+        except Exception as e:
+            with lock:
+                sys.stderr.write("Failed: " + str(e) + ": ".join(command) + "\n")
+        finally:
+            with lock:
+                if not (timeout is None or watchdog is None):
+                    if not watchdog.is_alive():
+                        sys.stderr.write(
+                            "Terminated by timeout: " + " ".join(command) + "\n"
+                        )
+                    watchdog.cancel()
+            task_queue.task_done()
+
+
+def start_workers(max_tasks, tidy_caller, arguments):
+    for _ in range(max_tasks):
+        t = threading.Thread(target=tidy_caller, args=arguments)
+        t.daemon = True
+        t.start()
+
+
+def merge_replacement_files(tmpdir, mergefile):
+    """Merge all replacement files in a directory into a single file"""
+    # The fixes suggested by clang-tidy >= 4.0.0 are given under
+    # the top level key 'Diagnostics' in the output yaml files
+    mergekey = "Diagnostics"
+    merged = []
+    for replacefile in glob.iglob(os.path.join(tmpdir, "*.yaml")):
+        content = yaml.safe_load(open(replacefile, "r"))
+        if not content:
+            continue  # Skip empty files.
+        merged.extend(content.get(mergekey, []))
+
+    if merged:
+        # MainSourceFile: The key is required by the definition inside
+        # include/clang/Tooling/ReplacementsYaml.h, but the value
+        # is actually never used inside clang-apply-replacements,
+        # so we set it to '' here.
+        output = {"MainSourceFile": "", mergekey: merged}
+        with open(mergefile, "w") as out:
+            yaml.safe_dump(output, out)
+    else:
+        # Empty the file:
+        open(mergefile, "w").close()
+
+
+def get_compiling_files(args):
+    """Read a compile_commands.json database and return a set of file paths"""
+    current_dir = Path.cwd()
+    compile_commands_json = (
+        (current_dir / args.build_path) if args.build_path else current_dir
+    )
+    compile_commands_json = compile_commands_json / "compile_commands.json"
+    files = set()
+    with open(compile_commands_json) as db_file:
+        db_json = json.load(db_file)
+        for entry in db_json:
+            if "file" not in entry:
+                continue
+            files.add(Path(entry["file"]))
+    return files
+
+
+def get_git_root():
+    """Return the top-level directory of the current git repo, or None."""
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except FileNotFoundError:
+        return None
+    if out.returncode != 0:
+        return None
+    return out.stdout.strip()
+
+
+def resolve_diff_lines(args):
+    """Return the lines of a unified diff to run clang-tidy against.
+
+    If a diff was piped into stdin (e.g. `git diff -U0 HEAD^ |
+    git-clang-tidy -p1`), it is used as-is -- this preserves the original
+    diff-clang-tidy.py behavior exactly, including `-p` prefix stripping.
+
+    Otherwise (i.e. this was invoked directly, such as via `git
+    clang-tidy`), the diff is generated here by calling `git diff` for the
+    caller, using `args.commits`/`args.staged` to pick what to compare, and
+    the working directory is switched to the repository's top level so
+    that the paths clang-tidy sees line up with the paths git reports.
+    """
+    if not sys.stdin.isatty():
+        return sys.stdin.readlines()
+
+    git_root = get_git_root()
+    if git_root is None:
+        sys.stderr.write(
+            "git-clang-tidy: not inside a git repository, and no diff was "
+            "piped in on stdin.\n"
+            "Either run this from inside a git repo, or pipe a unified "
+            "diff in, e.g.:\n"
+            "  git diff -U0 HEAD^ | git-clang-tidy -p1\n"
+        )
+        sys.exit(1)
+    os.chdir(git_root)
+
+    cmd = ["git", "diff", "-U0", "--no-color", "--no-prefix"]
+    if args.staged:
+        cmd.append("--cached")
+    if args.commits:
+        cmd.extend(args.commits)
+    elif not args.staged:
+        cmd.append("HEAD")
+
+    diff = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if diff.returncode != 0:
+        sys.stderr.write(diff.stderr)
+        sys.exit(diff.returncode)
+    if not diff.stdout:
+        sys.stderr.write("git-clang-tidy: no changes to check.\n")
+    return diff.stdout.splitlines(keepends=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Run clang-tidy against changed files, and "
+        "output diagnostics only for modified lines. Can be run directly "
+        "as `git clang-tidy` (see module docstring for install steps), or "
+        "in the original pipe-based mode.",
+    )
+    parser.add_argument(
+        "-clang-tidy-binary",
+        metavar="PATH",
+        default="clang-tidy",
+        help="path to clang-tidy binary",
+    )
+    parser.add_argument(
+        "-p",
+        metavar="NUM",
+        default=0,
+        help="strip the smallest prefix containing P slashes. Ignored "
+        "when the diff is generated automatically (git mode), since that "
+        "diff is always requested with no a/ b/ prefixes.",
+    )
+    parser.add_argument(
+        "-regex",
+        metavar="PATTERN",
+        default=None,
+        help="custom pattern selecting file paths to check "
+        "(case sensitive, overrides -iregex)",
+    )
+    parser.add_argument(
+        "-iregex",
+        metavar="PATTERN",
+        default=r".*\.(cpp|cc|c\+\+|cxx|c|cl|h|hpp|m|mm|inc)",
+        help="custom pattern selecting file paths to check "
+        "(case insensitive, overridden by -regex)",
+    )
+    parser.add_argument(
+        "-j",
+        type=int,
+        default=0,
+        help="number of tidy instances to be run in parallel.",
+    )
+    parser.add_argument(
+        "-timeout", type=int, default=None, help="timeout per each file in seconds."
+    )
+    parser.add_argument(
+        "-fix", action="store_true", default=False, help="apply suggested fixes"
+    )
+    parser.add_argument(
+        "-checks",
+        help="checks filter, when not specified, use clang-tidy " "default",
+        default="",
+    )
+    parser.add_argument(
+        "-config-file",
+        dest="config_file",
+        help="Specify the path of .clang-tidy or custom config file",
+        default="",
+    )
+    parser.add_argument("-use-color", action="store_true", help="Use colors in output")
+    parser.add_argument(
+        "-path", dest="build_path", help="Path used to read a compile command database."
+    )
+    if yaml:
+        parser.add_argument(
+            "-export-fixes",
+            metavar="FILE_OR_DIRECTORY",
+            dest="export_fixes",
+            help="A directory or a yaml file to store suggested fixes in, "
+            "which can be applied with clang-apply-replacements. If the "
+            "parameter is a directory, the fixes of each compilation unit are "
+            "stored in individual yaml files in the directory.",
+        )
+    else:
+        parser.add_argument(
+            "-export-fixes",
+            metavar="DIRECTORY",
+            dest="export_fixes",
+            help="A directory to store suggested fixes in, which can be applied "
+            "with clang-apply-replacements. The fixes of each compilation unit are "
+            "stored in individual yaml files in the directory.",
+        )
+    parser.add_argument(
+        "-extra-arg",
+        dest="extra_arg",
+        action="append",
+        default=[],
+        help="Additional argument to append to the compiler " "command line.",
+    )
+    parser.add_argument(
+        "-extra-arg-before",
+        dest="extra_arg_before",
+        action="append",
+        default=[],
+        help="Additional argument to prepend to the compiler " "command line.",
+    )
+    parser.add_argument(
+        "-removed-arg",
+        dest="removed_arg",
+        action="append",
+        default=[],
+        help="Arguments to remove from the compiler command line.",
+    )
+    parser.add_argument(
+        "-quiet",
+        action="store_true",
+        default=False,
+        help="Run clang-tidy in quiet mode",
+    )
+    parser.add_argument(
+        "-load",
+        dest="plugins",
+        action="append",
+        default=[],
+        help="Load the specified plugin in clang-tidy.",
+    )
+    parser.add_argument(
+        "-allow-no-checks",
+        action="store_true",
+        help="Allow empty enabled checks.",
+    )
+    parser.add_argument(
+        "-only-check-in-db",
+        dest="skip_non_compiling",
+        default=False,
+        action="store_true",
+        help="Only check files in the compilation database",
+    )
+    parser.add_argument(
+        "-warnings-as-errors",
+        help="Upgrades clang-tidy warnings to errors. Same format as '-checks'.",
+        default="",
+    )
+    parser.add_argument(
+        "-hide-progress",
+        action="store_true",
+        help="Hide progress",
+    )
+
+    git_group = parser.add_argument_group(
+        "git mode",
+        "Only used when no diff is piped in on stdin, i.e. when running "
+        "this directly as `git clang-tidy`.",
+    )
+    git_group.add_argument(
+        "commits",
+        nargs="*",
+        default=None,
+        help="git revision(s) to diff against, e.g. 'main' or "
+        "'HEAD~3..HEAD'. Defaults to comparing the working tree (and "
+        "index) against HEAD.",
+    )
+    git_group.add_argument(
+        "-cached",
+        "--staged",
+        dest="staged",
+        action="store_true",
+        default=False,
+        help="only check staged (index) changes, like 'git diff --cached'",
+    )
+
+    clang_tidy_args = []
+    argv = sys.argv[1:]
+    if "--" in argv:
+        clang_tidy_args.extend(argv[argv.index("--") :])
+        argv = argv[: argv.index("--")]
+
+    args = parser.parse_args(argv)
+
+    diff_lines = resolve_diff_lines(args)
+
+    compiling_files = get_compiling_files(args) if args.skip_non_compiling else None
+
+    # Extract changed lines for each file.
+    filename = None
+    lines_by_file = {}
+    for line in diff_lines:
+        match = re.search(r'^\+\+\+\ "?(.*?/){%s}([^ \t\n"]*)' % args.p, line)
+        if match:
+            filename = match.group(2)
+        if filename is None:
+            continue
+
+        if args.regex is not None:
+            if not re.match("^%s$" % args.regex, filename):
+                continue
+        else:
+            if not re.match("^%s$" % args.iregex, filename, re.IGNORECASE):
+                continue
+
+        # Skip any files not in the compiling list
+        if (
+            compiling_files is not None
+            and (Path.cwd() / filename) not in compiling_files
+        ):
+            continue
+
+        match = re.search(r"^@@.*\+(\d+)(,(\d+))?", line)
+        if match:
+            start_line = int(match.group(1))
+            line_count = 1
+            if match.group(3):
+                line_count = int(match.group(3))
+            if line_count == 0:
+                continue
+            end_line = start_line + line_count - 1
+            lines_by_file.setdefault(filename, []).append([start_line, end_line])
+
+    if not any(lines_by_file):
+        print("No relevant changes found.")
+        sys.exit(0)
+
+    max_task_count = args.j
+    if max_task_count == 0:
+        max_task_count = multiprocessing.cpu_count()
+    max_task_count = min(len(lines_by_file), max_task_count)
+    if not args.hide_progress:
+        print(f"Running clang-tidy in {max_task_count} threads...")
+
+    combine_fixes = False
+    export_fixes_dir = None
+    delete_fixes_dir = False
+    if args.export_fixes is not None:
+        # if a directory is given, create it if it does not exist
+        if args.export_fixes.endswith(os.path.sep) and not os.path.isdir(
+            args.export_fixes
+        ):
+            os.makedirs(args.export_fixes)
+
+        if not os.path.isdir(args.export_fixes):
+            if not yaml:
+                raise RuntimeError(
+                    "Cannot combine fixes in one yaml file. Either install PyYAML or specify an output directory."
+                )
+
+            combine_fixes = True
+
+        if os.path.isdir(args.export_fixes):
+            export_fixes_dir = args.export_fixes
+
+    if combine_fixes:
+        export_fixes_dir = tempfile.mkdtemp()
+        delete_fixes_dir = True
+
+    # Tasks for clang-tidy.
+    task_queue = queue.Queue(max_task_count)
+    # A lock for console output.
+    lock = threading.Lock()
+
+    # List of files with a non-zero return code.
+    failed_files = []
+
+    # Run a pool of clang-tidy workers.
+    start_workers(
+        max_task_count, run_tidy, (task_queue, lock, args.timeout, failed_files)
+    )
+
+    # Form the common args list.
+    common_clang_tidy_args = []
+    if args.fix:
+        common_clang_tidy_args.append("-fix")
+    if args.checks != "":
+        common_clang_tidy_args.append("-checks=" + args.checks)
+    if args.config_file != "":
+        common_clang_tidy_args.append("-config-file=" + args.config_file)
+    if args.quiet:
+        common_clang_tidy_args.append("-quiet")
+    if args.build_path is not None:
+        common_clang_tidy_args.append("-p=%s" % args.build_path)
+    if args.use_color:
+        common_clang_tidy_args.append("--use-color")
+    if args.allow_no_checks:
+        common_clang_tidy_args.append("--allow-no-checks")
+    for arg in args.extra_arg:
+        common_clang_tidy_args.append("-extra-arg=%s" % arg)
+    for arg in args.extra_arg_before:
+        common_clang_tidy_args.append("-extra-arg-before=%s" % arg)
+    for arg in args.removed_arg:
+        common_clang_tidy_args.append("-removed-arg=%s" % arg)
+    for plugin in args.plugins:
+        common_clang_tidy_args.append("-load=%s" % plugin)
+    if args.warnings_as_errors:
+        common_clang_tidy_args.append("-warnings-as-errors=" + args.warnings_as_errors)
+
+    for name in lines_by_file:
+        line_filter_json = json.dumps(
+            [{"name": name, "lines": lines_by_file[name]}], separators=(",", ":")
+        )
+
+        # Run clang-tidy on files containing changes.
+        command = [args.clang_tidy_binary]
+        command.append("-line-filter=" + line_filter_json)
+        if args.export_fixes is not None:
+            # Get a temporary file. We immediately close the handle so clang-tidy can
+            # overwrite it.
+            (handle, tmp_name) = tempfile.mkstemp(suffix=".yaml", dir=export_fixes_dir)
+            os.close(handle)
+            command.append("-export-fixes=" + tmp_name)
+        command.extend(common_clang_tidy_args)
+        command.append(name)
+        command.extend(clang_tidy_args)
+
+        task_queue.put(command)
+
+    # Application return code
+    return_code = 0
+
+    # Wait for all threads to be done.
+    task_queue.join()
+    # Application return code
+    return_code = 0
+    if failed_files:
+        return_code = 1
+
+    if combine_fixes:
+        if not args.hide_progress:
+            print(f"Writing fixes to {args.export_fixes} ...")
+        try:
+            merge_replacement_files(export_fixes_dir, args.export_fixes)
+        except Exception:
+            sys.stderr.write("Error exporting fixes.\n")
+            traceback.print_exc()
+            return_code = 1
+
+    if delete_fixes_dir:
+        shutil.rmtree(export_fixes_dir)
+    sys.exit(return_code)
+
+
+if __name__ == "__main__":
+    main()

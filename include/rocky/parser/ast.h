@@ -1,8 +1,8 @@
 #ifndef ROCKY_PARSER_AST_H
 #define ROCKY_PARSER_AST_H
 
-#include <stdint.h>
 #include <rocky/lexer/token.h>
+#include <stdint.h>
 
 /* ── Types ────────────────────────────────────────────────── */
 
@@ -22,10 +22,24 @@ typedef enum {
 } UnaryOp;
 
 typedef enum {
-    BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD,
-    BINOP_BAND, BINOP_BOR, BINOP_BXOR, BINOP_SHL, BINOP_SHR,
-    BINOP_EQ, BINOP_NEQ, BINOP_LT, BINOP_GT, BINOP_LE, BINOP_GE,
-    BINOP_AND, BINOP_OR,
+    BINOP_ADD,
+    BINOP_SUB,
+    BINOP_MUL,
+    BINOP_DIV,
+    BINOP_MOD,
+    BINOP_BAND,
+    BINOP_BOR,
+    BINOP_BXOR,
+    BINOP_SHL,
+    BINOP_SHR,
+    BINOP_EQ,
+    BINOP_NEQ,
+    BINOP_LT,
+    BINOP_GT,
+    BINOP_LE,
+    BINOP_GE,
+    BINOP_AND,
+    BINOP_OR,
 } BinaryOp;
 
 /* ── AST node ─────────────────────────────────────────────── */
@@ -46,36 +60,36 @@ typedef enum {
 
 struct Expr {
     ExprKind kind;
-    Token    token;
+    Token token;
     TypeKind type;
 
     union {
-        int64_t  ival;
-        double   fval;
-        int      bval;
+        int64_t ival;
+        double fval;
+        int bval;
 
         struct {
-            const char *name;
-            int         len;
+            const char* name;
+            int len;
         } ident;
 
         struct {
-            UnaryOp  op;
-            Expr    *operand;
+            UnaryOp op;
+            Expr* operand;
         } unary;
 
         struct {
-            BinaryOp  op;
-            Expr     *lhs;
-            Expr     *rhs;
+            BinaryOp op;
+            Expr* lhs;
+            Expr* rhs;
         } binary;
 
         struct {
-            TypeKind  to;
-            Expr     *operand;
+            TypeKind to;
+            Expr* operand;
         } cast;
         struct {
-            const char *start;
+            const char* start;
             int len;
         } str;
     } as;
