@@ -81,8 +81,7 @@ static void skip_whitespace(Lexer *lexer){
                 break;
             default:
                 return;
-
-        }int *lexer;
+        }
     }
 }
 
@@ -94,6 +93,7 @@ static Token make_token(Lexer *lexer, TokenKind type){
     token.start=lexer->start;
     token.length = (int)(lexer->current - lexer->start);
     token.line=lexer->line;
+    token.column = lexer->column - (int)token.length;
     return token;
 
 }
@@ -105,6 +105,7 @@ static Token errorToken(Lexer *lexer, const char* message){
     token.start=message;
     token.length=(int)strlen(message);
     token.line=lexer->line;
+    token.column = lexer->column;
     return token;
 }
 

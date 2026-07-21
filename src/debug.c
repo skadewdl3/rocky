@@ -32,9 +32,20 @@ const char* token_type_str(TokenKind type) {
         /*  Literals  */
         case TOKEN_INT: return "INT";
         case TOKEN_FLOAT: return "FLOAT";
+        case TOKEN_STRING: return "STRING";
+        case TOKEN_BOOL: return "BOOL";
+        case TOKEN_SIZE_T: return "SIZE_T";
 
         /*  Identifiers  */
         case TOKEN_IDENTIFIER: return "IDENTIFIER";
+
+        /*  Keywords */
+        case TOKEN_IF: return "IF";
+        case TOKEN_ELSE: return "ELSE";
+        case TOKEN_FOR: return "FOR";
+        case TOKEN_WHILE: return "WHILE";
+        case TOKEN_RETURN: return "RETURN";
+        case TOKEN_FUNCTION: return "FN";
 
         /*  Operators  */
         case TOKEN_PLUS: return "PLUS";
@@ -43,10 +54,32 @@ const char* token_type_str(TokenKind type) {
         case TOKEN_SLASH: return "SLASH";
         case TOKEN_PERCENT: return "PERCENT";
         case TOKEN_EQUAL: return "EQUALS";
+        case TOKEN_EQEQ: return "EQEQ";
+        case TOKEN_BANGEQ: return "BANGEQ";
+        case TOKEN_LT: return "LT";
+        case TOKEN_GT: return "GT";
+        case TOKEN_LTEQ: return "LTEQ";
+        case TOKEN_GTEQ: return "GTEQ";
+        case TOKEN_AMP: return "AMP";
+        case TOKEN_PIPE: return "PIPE";
+        case TOKEN_AMPAMP: return "AND";
+        case TOKEN_PIPEPIPE: return "OR";
+        case TOKEN_LSHIFT: return "LSHIFT";
+        case TOKEN_RSHIFT: return "RSHIFT";
+        case TOKEN_TILDE: return "TILDE";
+        case TOKEN_PLUS_PLUS: return "PLUS_PLUS";
+        case TOKEN_MINUS_MINUS: return "MINUS_MINUS";
+        case TOKEN_PLUS_EQUAL: return "PLUS_EQUAL";
+        case TOKEN_MINUS_EQUAL: return "MINUS_EQUAL";
 
-        /*  Parentheses  */
+        /*  Parentheses / Braces / Punctuation */ 
         case TOKEN_LPAREN: return "(";
         case TOKEN_RPAREN: return ")";
+        case TOKEN_LBRACE: return "{";
+        case TOKEN_RBRACE: return "}";
+        case TOKEN_COMMA: return ",";
+        case TOKEN_COLON: return ":";
+        case TOKEN_SEMICOLON: return ";";
 
         /*  Special  */
         case TOKEN_EOF: return "EOF";
