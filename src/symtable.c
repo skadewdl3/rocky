@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "rocky/parser/sema/symtable.h"
+#include <rocky/parser/sema/symtable.h>
 
 #define TABLE_MAX_LOAD 0.75
 #define GROW_CAPACITY(cap) ((cap) < 8 ? 8 : (cap) * 2)
@@ -21,7 +21,7 @@ static uint32_t hashString(const char* name, int length){
 //find an entry
 static Symbol* findEntry(Symbol* symbols, int capacity, const char* name, int length){
     uint32_t index = hashString(name, length) % capacity;
-    Symbol* tombstone = NULL; 
+    Symbol* tombstone = NULL;
 
     for(;;){
         Symbol* entry = &symbols[index];
@@ -41,7 +41,7 @@ static Symbol* findEntry(Symbol* symbols, int capacity, const char* name, int le
             return entry;
         }
 
-        index = (index + 1) % capacity; 
+        index = (index + 1) % capacity;
     }
 }
 

@@ -6,7 +6,7 @@
 #include <rocky/arena.h>
 
 /** @brief Parser state over pre-tokenized input. */
-typedef struct {
+typedef struct Parser {
     const Token *tokens;
     int          pos;
     int          len;

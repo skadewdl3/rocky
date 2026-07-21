@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "rocky/parser/ast.h"
-#include "rocky/parser/nodes.h"
-#include "rocky/parser/sema/symtable.h"
-#include "rocky/parser/sema/sema.h"
+#include <rocky/parser/ast.h>
+#include <rocky/parser/nodes.h>
+#include <rocky/parser/sema/symtable.h>
+#include <rocky/parser/sema/sema.h>
 
 
 static void visitStmt(Sema* sema, Stmt* stmt);
@@ -118,7 +118,7 @@ static void visitStmt(Sema* sema, Stmt* stmt){
 
 static void visitExpr(Sema* sema, Expr* expr){
     if(expr == NULL) return;
-    
+
     switch(expr->kind){
         case EXPR_INT_LIT:
             break;
@@ -158,7 +158,7 @@ static void visitExpr(Sema* sema, Expr* expr){
 
 //insert new entry into symbol table
 static void visitDeclaration(Sema* sema, Stmt* stmt){
-    
+
     Token name = stmt->defi.declaration_stmt.name;
 
     visitExpr(sema, stmt->defi.declaration_stmt.expr);
@@ -176,4 +176,3 @@ bool semaCheck(Sema* sema, Stmt* program){
 
     return sema->errors == 0;
 }
-

@@ -2,9 +2,9 @@
 #define NODES_H
 #include <rocky/lexer/token.h>
 #include <rocky/parser/ast.h>
-#include <rocky/parser/parser.h>
 
 typedef struct Parser Parser;
+
 typedef struct Param Param;
 typedef struct Stmt Stmt;
 typedef struct TypeExpr TypeExpr;
