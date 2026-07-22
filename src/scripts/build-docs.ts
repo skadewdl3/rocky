@@ -1,5 +1,5 @@
 import { $ } from "bun";
-import { rmSync, mkdirSync, existsSync, readdirSync, statSync } from "fs";
+import { rmSync, mkdirSync, existsSync, readdirSync, statSync, readFileSync, writeFileSync } from "fs";
 import { readdir } from "fs/promises";
 import { parseArgs } from "util";
 import { resolve, join, basename, dirname } from "path";
@@ -200,6 +200,91 @@ if (!args["skip-doxygen"] && !args["skip-build"] && !args["skip-docs"]) {
   // const XML_DIR = `${CODE}/docs/xml`;
 
   await $`bunx moxygen --groups --output "${PUBLIC}/docs/%s.md" ${XML_DIR}`;
+
+  /* ---------------- FIX DUPLICATE ---------------- */
+  console.log("Removing Duplicate entries...");
+
+  const docsDir = join(PUBLIC, "docs");
+  const mdFiles = readdirSync(docsDir).filter((f) => f.endsWith(".md"));
+
+  for (const file of mdFiles) {
+    const filePath = join(docsDir, file);
+    const seenHeaders = new Set();
+    const seenFuncs = new Set();
+    const lines = readFileSync(filePath, "utf-8").split("\n");
+
+    // group lines into segments separated by "---"
+    const segments = [[]];
+    for (const line of lines) {
+      if (line.trim() === "---") segments.push([line]);
+      else segments[segments.length - 1].push(line);
+    }
+
+    // filter segments with duplicate h4 headings
+    const kept = segments.flatMap((seg) => {
+      const header = seg.find((l) => l.trim().startsWith("#### "));
+      if (!header) return [seg];
+
+      const name = header.trim().slice(5).trim();
+      if (!seenHeaders.has(name)) {
+        seenHeaders.add(name);
+        return [seg];
+      }
+
+      // keep only ## content if present
+      const h2 = seg.findIndex((l) => l.trim().startsWith("## "));
+      return h2 !== -1 ? [seg.slice(h2)] : [];
+    });
+
+    // remove duplicate description lines within each segment
+    for (let i = 0; i < kept.length; i++) {
+      const seen = new Set();
+      let inCodeBlock = false;
+
+      kept[i] = kept[i].filter((line) => {
+        const trimmed = line.trim();
+
+        // make sure code blocks dont get messed with
+        if (trimmed.startsWith("```")) inCodeBlock = !inCodeBlock;
+        if (!trimmed || inCodeBlock) return true;
+        if (seen.has(trimmed)) return false;
+
+        seen.add(trimmed);
+        return true;
+      });
+    }
+
+    // fix table markdown duplication
+    const keptLines = [];
+    for (const line of kept.flat()) {
+      // reset seen stuff on new section header
+      if (line.trim().startsWith("### ")) seenFuncs.clear();
+
+      if (!line.startsWith("|")) {
+        keptLines.push(line);
+        continue;
+      }
+
+      const s = line.indexOf("](#");
+      if (s === -1) {
+        keptLines.push(line);
+        continue;
+      }
+
+      const e = line.indexOf(")", s);
+
+      // remove trailing -N suffix (ex. jit_init-1 and jit_init duplicates)
+      const fnName = line.slice(s + 3, e).replace(/-\d+$/, ""); // regex to remove -N suffix
+      if (seenFuncs.has(fnName)) continue;
+
+      seenFuncs.add(fnName);
+      keptLines.push(line);
+    }
+
+    writeFileSync(filePath, keptLines.join("\n"));
+  }
+
+  console.log("Deduplication complete.");
 
   console.log("Docs build complete.");
 }
