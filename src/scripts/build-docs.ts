@@ -285,4 +285,6 @@ if (!args["skip-doxygen"] && !args["skip-build"] && !args["skip-docs"]) {
   }
 
   console.log("Deduplication complete.");
+
+  console.log("Docs build complete.");
 }
