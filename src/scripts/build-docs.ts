@@ -3,6 +3,10 @@ import { rmSync, mkdirSync, existsSync, readdirSync, statSync, readFileSync, wri
 import { readdir } from "fs/promises";
 import { parseArgs } from "util";
 import { resolve, join, basename, dirname } from "path";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
+import remarkStringify from "remark-stringify";
 
 function ensure(path: string) {
   let dir = resolve(path);
@@ -204,84 +208,97 @@ if (!args["skip-doxygen"] && !args["skip-build"] && !args["skip-docs"]) {
   /* ---------------- FIX DUPLICATE ---------------- */
   console.log("Removing Duplicate entries...");
 
+  // helper to get raw text inside any node (formatted text, links, code, etc)
+  function getNodeText(node: any): string {
+    if (node.value) return node.value;
+    if (node.children) return node.children.map(getNodeText).join("");
+    return "";
+  }
+
+  const processor = unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkStringify, { bullet: "-", fence: "`" });
+
   const docsDir = join(PUBLIC, "docs");
   const mdFiles = readdirSync(docsDir).filter((f) => f.endsWith(".md"));
 
   for (const file of mdFiles) {
     const filePath = join(docsDir, file);
-    const seenHeaders = new Set();
-    const seenFuncs = new Set();
-    const lines = readFileSync(filePath, "utf-8").split("\n");
+    const text = readFileSync(filePath, "utf-8");
+    const ast = processor.parse(text);
 
-    // group lines into segments separated by "---"
-    const segments = [[]];
-    for (const line of lines) {
-      if (line.trim() === "---") segments.push([line]);
-      else segments[segments.length - 1].push(line);
+    // split AST into sections wherever there is a "---"
+    const sections: any[][] = [[]];
+    for (const child of ast.children) {
+      if (child.type === "thematicBreak") {
+        sections.push([]);
+      } else {
+        sections[sections.length - 1].push(child);
+      }
     }
 
-    // filter segments with duplicate h4 headings
-    const kept = segments.flatMap((seg) => {
-      const header = seg.find((l) => l.trim().startsWith("#### "));
-      if (!header) return [seg];
+    // keep first section for each h4 heading and drop duplicate sections
+    const seenH4 = new Set<string>();
+    const keptSections: any[][] = [];
 
-      const name = header.trim().slice(5).trim();
-      if (!seenHeaders.has(name)) {
-        seenHeaders.add(name);
-        return [seg];
+    for (const seg of sections) {
+      const h4Node = seg.find((n) => n.type === "heading" && n.depth === 4);
+      const h4Text = h4Node ? getNodeText(h4Node).trim() : null;
+
+      if (!h4Text) {
+        keptSections.push(seg);
+      } else if (!seenH4.has(h4Text)) {
+        seenH4.add(h4Text);
+        keptSections.push(seg);
       }
-
-      // keep only ## content if present
-      const h2 = seg.findIndex((l) => l.trim().startsWith("## "));
-      return h2 !== -1 ? [seg.slice(h2)] : [];
-    });
-
-    // remove duplicate description lines within each segment
-    for (let i = 0; i < kept.length; i++) {
-      const seen = new Set();
-      let inCodeBlock = false;
-
-      kept[i] = kept[i].filter((line) => {
-        const trimmed = line.trim();
-
-        // make sure code blocks dont get messed with
-        if (trimmed.startsWith("```")) inCodeBlock = !inCodeBlock;
-        if (!trimmed || inCodeBlock) return true;
-        if (seen.has(trimmed)) return false;
-
-        seen.add(trimmed);
-        return true;
-      });
     }
 
-    // fix table markdown duplication
-    const keptLines = [];
-    for (const line of kept.flat()) {
-      // reset seen stuff on new section header
-      if (line.trim().startsWith("### ")) seenFuncs.clear();
+    // clean up duplicate table rows, moxygen puts ex. -1,-2 suffix on duplicate anchors
+    for (const seg of keptSections) {
+      let seenFuncs = new Set<string>();
 
-      if (!line.startsWith("|")) {
-        keptLines.push(line);
-        continue;
+      for (const node of seg) {
+        if (node.type === "heading" && node.depth === 3) {
+          seenFuncs = new Set();
+        }
+
+        if (node.type !== "table") continue;
+
+        node.children = node.children.filter((row: any) => {
+          let name: string | null = null;
+
+          // find first anchor link in the table row
+          for (const cell of row.children) {
+            for (const c of cell.children || []) {
+              if (c.type === "link") {
+                name = c.url.replace(/^#/, "").replace(/-\d+$/, "");
+                break;
+              }
+            }
+            if (name) break;
+          }
+
+          if (!name) return true;
+          if (seenFuncs.has(name)) return false;
+
+          seenFuncs.add(name);
+          return true;
+        });
       }
-
-      const s = line.indexOf("](#");
-      if (s === -1) {
-        keptLines.push(line);
-        continue;
-      }
-
-      const e = line.indexOf(")", s);
-
-      // remove trailing -N suffix (ex. jit_init-1 and jit_init duplicates)
-      const fnName = line.slice(s + 3, e).replace(/-\d+$/, ""); // regex to remove -N suffix
-      if (seenFuncs.has(fnName)) continue;
-
-      seenFuncs.add(fnName);
-      keptLines.push(line);
     }
 
-    writeFileSync(filePath, keptLines.join("\n"));
+    // put everything back with "---" separators
+    const newChildren: any[] = [];
+    for (let i = 0; i < keptSections.length; i++) {
+      if (i > 0) newChildren.push({ type: "thematicBreak" });
+      newChildren.push(...keptSections[i]);
+    }
+
+    ast.children = newChildren;
+
+    const output = processor.stringify(ast);
+    writeFileSync(filePath, output);
   }
 
   console.log("Deduplication complete.");
