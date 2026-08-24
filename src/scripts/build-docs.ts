@@ -1,8 +1,12 @@
 import { $ } from "bun";
-import { rmSync, mkdirSync, existsSync, readdirSync, statSync } from "fs";
+import { rmSync, mkdirSync, existsSync, readdirSync, statSync, readFileSync, writeFileSync } from "fs";
 import { readdir } from "fs/promises";
 import { parseArgs } from "util";
 import { resolve, join, basename, dirname } from "path";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
+import remarkStringify from "remark-stringify";
 
 function ensure(path: string) {
   let dir = resolve(path);
@@ -200,6 +204,104 @@ if (!args["skip-doxygen"] && !args["skip-build"] && !args["skip-docs"]) {
   // const XML_DIR = `${CODE}/docs/xml`;
 
   await $`bunx moxygen --groups --output "${PUBLIC}/docs/%s.md" ${XML_DIR}`;
+
+  /* ---------------- FIX DUPLICATE ---------------- */
+  console.log("Removing Duplicate entries...");
+
+  // helper to get raw text inside any node (formatted text, links, code, etc)
+  function getNodeText(node: any): string {
+    if (node.value) return node.value;
+    if (node.children) return node.children.map(getNodeText).join("");
+    return "";
+  }
+
+  const processor = unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkStringify, { bullet: "-", fence: "`" });
+
+  const docsDir = join(PUBLIC, "docs");
+  const mdFiles = readdirSync(docsDir).filter((f) => f.endsWith(".md"));
+
+  for (const file of mdFiles) {
+    const filePath = join(docsDir, file);
+    const text = readFileSync(filePath, "utf-8");
+    const ast = processor.parse(text);
+
+    // split AST into sections wherever there is a "---"
+    const sections: any[][] = [[]];
+    for (const child of ast.children) {
+      if (child.type === "thematicBreak") {
+        sections.push([]);
+      } else {
+        sections[sections.length - 1].push(child);
+      }
+    }
+
+    // keep first section for each h4 heading and drop duplicate sections
+    const seenH4 = new Set<string>();
+    const keptSections: any[][] = [];
+
+    for (const seg of sections) {
+      const h4Node = seg.find((n) => n.type === "heading" && n.depth === 4);
+      const h4Text = h4Node ? getNodeText(h4Node).trim() : null;
+
+      if (!h4Text) {
+        keptSections.push(seg);
+      } else if (!seenH4.has(h4Text)) {
+        seenH4.add(h4Text);
+        keptSections.push(seg);
+      }
+    }
+
+    // clean up duplicate table rows, moxygen puts ex. -1,-2 suffix on duplicate anchors
+    for (const seg of keptSections) {
+      let seenFuncs = new Set<string>();
+
+      for (const node of seg) {
+        if (node.type === "heading" && node.depth === 3) {
+          seenFuncs = new Set();
+        }
+
+        if (node.type !== "table") continue;
+
+        node.children = node.children.filter((row: any) => {
+          let name: string | null = null;
+
+          // find first anchor link in the table row
+          for (const cell of row.children) {
+            for (const c of cell.children || []) {
+              if (c.type === "link") {
+                name = c.url.replace(/^#/, "").replace(/-\d+$/, "");
+                break;
+              }
+            }
+            if (name) break;
+          }
+
+          if (!name) return true;
+          if (seenFuncs.has(name)) return false;
+
+          seenFuncs.add(name);
+          return true;
+        });
+      }
+    }
+
+    // put everything back with "---" separators
+    const newChildren: any[] = [];
+    for (let i = 0; i < keptSections.length; i++) {
+      if (i > 0) newChildren.push({ type: "thematicBreak" });
+      newChildren.push(...keptSections[i]);
+    }
+
+    ast.children = newChildren;
+
+    const output = processor.stringify(ast);
+    writeFileSync(filePath, output);
+  }
+
+  console.log("Deduplication complete.");
 
   console.log("Docs build complete.");
 }
