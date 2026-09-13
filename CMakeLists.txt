@@ -31,6 +31,12 @@ add_executable(rocky
   src/lexer.c
   src/parser.c
   src/jit.c
+  src/hashmap.c
+  src/pass/manager.c
+  src/pass/input.c
+  src/pass/lexer.c
+  src/pass/parser.c
+  src/pass/sema.c
   src/symtable.c
   src/sema.c
   src/adt/linked_list.c
