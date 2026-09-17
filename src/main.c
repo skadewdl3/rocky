@@ -1,208 +1,83 @@
 /**
  * @file main.c
- * @brief Starts the rocky program.
+ * @brief Starts the rocky program and configures the compiler pass pipeline.
  * @ingroup Core
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <rocky/adt/linked_list.h>
 #include <rocky/cli.h>
-#include <rocky/debug.h>
-#include <rocky/lexer/lexer.h>
-#include <rocky/parser/parser.h>
+#include <rocky/pass/input.h>
+#include <rocky/pass/lexer.h>
+#include <rocky/pass/manager.h>
+#include <rocky/pass/parser.h>
+#include <rocky/pass/sema.h>
 #include <rocky/parser/sema/sema.h>
-#include <rocky/parser/sema/symtable.h>
-
-/* Max tokens we can store when parsing. */
-#define MAX_TOKENS 4096
-
-/* Read a whole file into a string. Caller must free() it. */
-static char* read_file(const char* path) {
-    FILE* f = fopen(path, "rb");
-    if (!f) {
-        return NULL;
-    }
-
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    if (size < 0) {
-        fclose(f);
-        return NULL;
-    }
-
-    char* buf = malloc((size_t)size + 1);
-    if (!buf) {
-        fclose(f);
-        return NULL;
-    }
-
-    size_t nread = fread(buf, 1, (size_t)size, f);
-    fclose(f);
-    buf[nread] = '\0';
-    return buf;
-}
-
-/* Turn source code into tokens. Returns how many tokens we got. */
-static int tokenize_all(const char* source, Token* out, int cap) {
-    Lexer lexer;
-    lexer_init(&lexer, source);
-
-    int count = 0;
-    for (;;) {
-        if (count >= cap) {
-            return -1;
-        }
-        Token tok = lexer_next_token(&lexer);
-        out[count++] = tok;
-        if (tok.type == TOKEN_EOF) {
-            break;
-        }
-    }
-    return count;
-}
-
-/* Build a linked list of Token* into the token array. Caller frees the list. */
-static LinkedList* tokens_to_list(Token* tokens, int n) {
-    LinkedList* list = create_linked_list();
-    if (!list) {
-        return NULL;
-    }
-    for (int i = 0; i < n; i++) {
-        linked_list_append(list, &tokens[i]);
-    }
-    return list;
-}
-
-/* Print every token (for --dump-tokens). */
-static void dump_tokens(const char* source) {
-    Lexer lexer;
-    lexer_init(&lexer, source);
-
-    for (;;) {
-        Token tok = lexer_next_token(&lexer);
-        print_token(&tok, TOK_PRINT_ALL);
-        if (tok.type == TOKEN_EOF) {
-            break;
-        }
-    }
-}
-
-/* Parse source into an AST tree and print it. */
-static int dump_ast(const char* source) {
-    Token tokens[MAX_TOKENS];
-    int n = tokenize_all(source, tokens, MAX_TOKENS);
-    if (n < 0) {
-        fprintf(stderr, "error: too many tokens\n");
-        return 1;
-    }
-
-    LinkedList* token_list = tokens_to_list(tokens, n);
-    if (!token_list) {
-        fprintf(stderr, "error: out of memory\n");
-        return 1;
-    }
-
-    Arena arena;
-    arena_init(&arena, 64 * 1024);
-
-    Parser parser;
-    parser_init(&parser, token_list, &arena);
-    Stmt* root = parse_program(&parser);
-    print_stmt(root, 0, 1, 0);
-
-    arena_free(&arena);
-    free_linked_list(token_list);
-    return 0;
-}
-
-static int run_sema(const char* source, int dump_sym_table) {
-    Token tokens[MAX_TOKENS];
-    int n = tokenize_all(source, tokens, MAX_TOKENS);
-    if (n < 0) {
-        fprintf(stderr, "error: too many tokens\n");
-        return 1;
-    }
-
-    LinkedList* token_list = tokens_to_list(tokens, n);
-    if (!token_list) {
-        fprintf(stderr, "error: out of memory\n");
-        return 1;
-    }
-
-    Arena arena;
-    arena_init(&arena, 64 * 1024);
-    Parser parser;
-    parser_init(&parser, token_list, &arena);
-    Stmt* program = parse_program(&parser);
-
-    Sema sema;
-    init_sema(&sema);
-    bool ok = sema_check(&sema, program);
-
-    if (dump_sym_table) {
-        dump_symbol_table(&sema.table);
-    }
-
-    if (!ok) {
-        fprintf(stderr, "%d error(s) found\n", sema.errors);
-    }
-
-    free_sema(&sema);
-    arena_free(&arena);
-    free_linked_list(token_list);
-    return ok ? 0 : 1;
-}
 
 int main(int argc, char** argv) {
     RockyCliOptions options;
     char errbuf[256] = {0};
 
-    /* read command line flags (-c, --dump-ast, and so on...) */
-    RockyCliParseStatus status = rocky_cli_parse(argc, argv, &options, errbuf, sizeof(errbuf));
+    rocky_cli_options_init(&options);
 
+    RockyCliParser* cli_parser = rocky_cli_parse_init(&options);
+    if (!cli_parser) {
+        fprintf(stderr, "error: out of memory\n");
+        return 1;
+    }
+
+    RockyCliParseStatus status =
+        rocky_cli_parse(cli_parser, argc, argv, errbuf, sizeof(errbuf));
     if (status == ROCKY_CLI_PARSE_HELP) {
+        rocky_cli_parser_free(cli_parser);
         return 0;
     }
     if (status == ROCKY_CLI_PARSE_ERROR) {
         fprintf(stderr, "error: %s\n", errbuf[0] ? errbuf : "bad arguments");
         rocky_cli_print_usage(stderr, argv[0] ? argv[0] : "rocky");
+        rocky_cli_parser_free(cli_parser);
+        return 1;
+    }
+    rocky_cli_parser_free(cli_parser);
+
+    PassManager* pm = create_pass_manager();
+    if (!pm) {
+        fprintf(stderr, "error: out of memory\n");
         return 1;
     }
 
-    /* Get the source code (from -c or from a file) */
-    char* file_source = NULL;
-    const char* source = options.inline_code;
+    add_pass(pm, input_pass);
+    add_pass(pm, lexer_pass);
+    add_pass(pm, parser_pass);
+    add_pass(pm, sema_pass);
 
-    if (!source) {
-        file_source = read_file(options.input_file);
-        if (!file_source) {
-            fprintf(stderr, "error: cannot read file '%s'\n", options.input_file);
-            return 1;
-        }
-        source = file_source;
-    }
+    hashmap_set(pm->context, ROCKY_CONTEXT_CLI_OPTIONS, &options);
+    run_passes(pm);
 
-    /* now do what the flags asked for */
     int rc = 0;
-
-    if (options.dump_tokens) {
-        dump_tokens(source);
+    InputPassResult* input = hashmap_get(pm->context, ROCKY_CONTEXT_INPUT);
+    if (!input || input->failed) {
+        rc = 1;
+    }
+    LexerPassResult* tokens = hashmap_get(pm->context, ROCKY_CONTEXT_TOKENS);
+    if (tokens && tokens->failed) {
+        rc = 1;
+    }
+    Sema* sema = hashmap_get(pm->context, ROCKY_CONTEXT_SEMA);
+    if (sema && sema->errors) {
+        rc = 1;
     }
 
-    if (options.dump_ast) {
-        rc = dump_ast(source);
+    if (sema) {
+        free_sema(sema);
     }
-
-    if (options.dump_symbol_table) {
-        printf("dump_symbol_table = %d\n", options.dump_symbol_table);
-        rc = run_sema(source, 1);
+    if (tokens) {
+        free_linked_list(tokens->tokens);
     }
-
-    free(file_source);
+    if (input) {
+        free(input->owned_source);
+    }
+    free_pass_manager(pm);
     return rc;
 }
