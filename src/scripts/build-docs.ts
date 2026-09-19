@@ -203,7 +203,14 @@ if (!args["skip-doxygen"] && !args["skip-build"] && !args["skip-docs"]) {
 
   // const XML_DIR = `${CODE}/docs/xml`;
 
-  await $`bunx moxygen --groups --output "${PUBLIC}/docs/%s.md" ${XML_DIR}`;
+  await $`bunx moxygen --groups --source-root ${CODE} --output "${PUBLIC}/docs/%s.md" ${XML_DIR}`;
+
+  const apiIndex = resolve(PUBLIC, "docs", "api.md");
+  if (!existsSync(apiIndex)) {
+    throw new Error(
+      "Moxygen did not generate docs/api.md; ungrouped API documentation would be missing.",
+    );
+  }
 
   /* ---------------- FIX DUPLICATE ---------------- */
   console.log("Removing Duplicate entries...");
