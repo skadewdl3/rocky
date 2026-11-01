@@ -29,44 +29,15 @@ void free_sema(Sema* sema) {
     free_sym_table(&sema->table);
 }
 
-// convert semantic types to AST type kinds
 static TypeKind ast_type_from_sema_type(const SemaType* type) {
     if (type == NULL)
         return TYPE_ERROR;
 
-    switch (type->kind) {
-    case SEMA_TYPE_INT:
-        return TYPE_INT;
-
-    case SEMA_TYPE_FLOAT:
-        return TYPE_FLOAT;
-
-    case SEMA_TYPE_BOOL:
-        return TYPE_BOOL;
-
-    case SEMA_TYPE_STRING:
-        return TYPE_STRING;
-
-    case SEMA_TYPE_SIZE_T:
-        return TYPE_SIZE_T;
-
-    case SEMA_TYPE_VOID:
-        return TYPE_VOID;
-
-    case SEMA_TYPE_POINTER:
-        return TYPE_POINTER;
-
-    case SEMA_TYPE_FUNCTION:
-        return TYPE_FUNCTION;
-
-    case SEMA_TYPE_ERROR:
-    default:
-        return TYPE_ERROR;
-    }
+    return type->kind;
 }
 
 static SemaType* error_type(void) {
-    return sema_type_new(SEMA_TYPE_ERROR);
+    return sema_type_new(TYPE_ERROR);
 }
 
 static void report_expression_error(
@@ -124,8 +95,8 @@ static void check_condition(
         return;
     }
     
-    if (condition_type->kind != SEMA_TYPE_ERROR &&
-        condition_type->kind != SEMA_TYPE_BOOL) {
+    if (condition_type->kind != TYPE_ERROR &&
+        condition_type->kind != TYPE_BOOL) {
         fprintf(
             stderr,
             "type error at line %d col %d: "
@@ -144,7 +115,7 @@ static void check_condition(
 
 
 static bool is_boolean_type(const SemaType* type) {
-    return type != NULL && type->kind == SEMA_TYPE_BOOL;
+    return type != NULL && type->kind == TYPE_BOOL;
 }
 
 static bool is_integer_type(const SemaType* type) {
@@ -208,15 +179,15 @@ static void visit_stmt(Sema* sema, Stmt* stmt) {
 
         // parser always requires a return expression
         // thus returning from a void function is invalid.
-        if (sema->current_return_type->kind == SEMA_TYPE_VOID) {
-            if (value_type->kind != SEMA_TYPE_ERROR) {
+        if (sema->current_return_type->kind == TYPE_VOID) {
+            if (value_type->kind != TYPE_ERROR) {
                 report_statement_error(
                     sema,
                     stmt,
                     "void function cannot return a value"
                 );
             }
-        } else if (value_type->kind != SEMA_TYPE_ERROR &&
+        } else if (value_type->kind != TYPE_ERROR &&
                    !sema_type_assignable(
                        sema->current_return_type,
                        value_type
@@ -280,7 +251,7 @@ static void visit_stmt(Sema* sema, Stmt* stmt) {
             
             // function without explicit return type is considered void 
             sema->current_return_type =
-                sema_type_new(SEMA_TYPE_VOID);
+                sema_type_new(TYPE_VOID);
         }
 
         if (sema->current_return_type == NULL) {
@@ -342,7 +313,7 @@ static void visit_stmt(Sema* sema, Stmt* stmt) {
             target_type = sema_type_from_ast(entry->type);
 
             if (target_type == NULL ||
-                target_type->kind == SEMA_TYPE_ERROR) {
+                target_type->kind == TYPE_ERROR) {
                 report_statement_error(
                     sema,
                     stmt,
@@ -360,9 +331,9 @@ static void visit_stmt(Sema* sema, Stmt* stmt) {
 
         // Validate correct assignments
         if (target_type != NULL &&
-            target_type->kind != SEMA_TYPE_ERROR &&
+            target_type->kind != TYPE_ERROR &&
             value_type != NULL &&
-            value_type->kind != SEMA_TYPE_ERROR &&
+            value_type->kind != TYPE_ERROR &&
             !sema_type_assignable(target_type, value_type)) {
             fprintf(
                 stderr,
@@ -499,8 +470,8 @@ static SemaType* check_call_expr(Sema* sema, Expr* expr) {
 
         if (argument_type != NULL &&
             parameter_type != NULL &&
-            argument_type->kind != SEMA_TYPE_ERROR &&
-            parameter_type->kind != SEMA_TYPE_ERROR &&
+            argument_type->kind != TYPE_ERROR &&
+            parameter_type->kind != TYPE_ERROR &&
             !sema_type_assignable(
                 parameter_type,
                 argument_type
@@ -532,7 +503,7 @@ static SemaType* check_call_expr(Sema* sema, Expr* expr) {
     );
 
     if (return_type == NULL)
-        return_type = sema_type_new(SEMA_TYPE_VOID);
+        return_type = sema_type_new(TYPE_VOID);
 
     expr->type = ast_type_from_sema_type(return_type);
     return return_type;
@@ -542,25 +513,25 @@ static SemaType* check_call_expr(Sema* sema, Expr* expr) {
 
 static SemaType* check_expr(Sema* sema, Expr* expr) {
     if (expr == NULL)
-        return sema_type_new(SEMA_TYPE_VOID);
+        return sema_type_new(TYPE_VOID);
 
     SemaType* result = NULL;
 
     switch (expr->kind) {
     case EXPR_INT_LIT:
-        result = sema_type_new(SEMA_TYPE_INT);
+        result = sema_type_new(TYPE_INT);
         break;
 
     case EXPR_FLOAT_LIT:
-        result = sema_type_new(SEMA_TYPE_FLOAT);
+        result = sema_type_new(TYPE_FLOAT);
         break;
 
     case EXPR_BOOL_LIT:
-        result = sema_type_new(SEMA_TYPE_BOOL);
+        result = sema_type_new(TYPE_BOOL);
         break;
 
     case EXPR_STRING_LIT:
-        result = sema_type_new(SEMA_TYPE_STRING);
+        result = sema_type_new(TYPE_STRING);
         break;
 
     case EXPR_IDENT: {
@@ -615,9 +586,7 @@ static SemaType* check_expr(Sema* sema, Expr* expr) {
         if (operand == NULL)
             return error_type();
 
-        SemaType* target = sema_type_new(
-            sema_type_from_ast_kind(expr->as.cast.to)
-        );
+        SemaType* target = sema_type_new(expr->as.cast.to);
 
         if (target == NULL) {
             sema_type_free(operand);
@@ -663,39 +632,6 @@ static void visit_expr(Sema* sema, Expr* expr) {
 }
 
 
-static SemaTypeKind sema_type_from_ast_kind(TypeKind kind) {
-    switch (kind) {
-    case TYPE_INT:
-        return SEMA_TYPE_INT;
-
-    case TYPE_FLOAT:
-        return SEMA_TYPE_FLOAT;
-
-    case TYPE_BOOL:
-        return SEMA_TYPE_BOOL;
-
-    case TYPE_STRING:
-        return SEMA_TYPE_STRING;
-
-    case TYPE_SIZE_T:
-        return SEMA_TYPE_SIZE_T;
-
-    case TYPE_VOID:
-        return SEMA_TYPE_VOID;
-
-    case TYPE_POINTER:
-        return SEMA_TYPE_POINTER;
-
-    case TYPE_FUNCTION:
-        return SEMA_TYPE_FUNCTION;
-
-    case TYPE_ERROR:
-    default:
-        return SEMA_TYPE_ERROR;
-    }
-}
-
-
 // insert new entry into symbol table
 static void visit_declaration(Sema* sema, Stmt* stmt) {
     Token name = stmt->defi.declaration_stmt.name;
@@ -706,7 +642,7 @@ static void visit_declaration(Sema* sema, Stmt* stmt) {
     );
 
     if (declared_type == NULL ||
-        declared_type->kind == SEMA_TYPE_ERROR) {
+            declared_type->kind == TYPE_ERROR) {
         report_statement_error(
             sema,
             stmt,
@@ -729,7 +665,7 @@ static void visit_declaration(Sema* sema, Stmt* stmt) {
             stmt,
             "unable to determine initializer type"
         );
-    } else if (value_type->kind != SEMA_TYPE_ERROR &&
+        } else if (value_type->kind != TYPE_ERROR &&
                !sema_type_assignable(declared_type, value_type)) {
         fprintf(
             stderr,
@@ -815,7 +751,7 @@ static SemaType* check_unary_expr(Sema* sema, Expr* expr) {
 
             result = error_type();
         } else {
-            result = sema_type_new(SEMA_TYPE_BOOL);
+            result = sema_type_new(TYPE_BOOL);
         }
         break;
 
@@ -869,7 +805,7 @@ static SemaType* check_binary_expr(Sema* sema, Expr* expr) {
 
             result = error_type();
         } else {
-            SemaTypeKind common_kind =
+        TypeKind common_kind =
                 sema_type_common_numeric(left, right);
 
             result = sema_type_new(common_kind);
@@ -887,7 +823,7 @@ static SemaType* check_binary_expr(Sema* sema, Expr* expr) {
 
             result = error_type();
         } else {
-            result = sema_type_new(SEMA_TYPE_INT);
+            result = sema_type_new(TYPE_INT);
         }
         break;
 
@@ -906,7 +842,7 @@ static SemaType* check_binary_expr(Sema* sema, Expr* expr) {
 
             result = error_type();
         } else {
-            result = sema_type_new(SEMA_TYPE_INT);
+            result = sema_type_new(TYPE_INT);
         }
         break;
 
@@ -922,7 +858,7 @@ static SemaType* check_binary_expr(Sema* sema, Expr* expr) {
             );
         }
 
-        result = sema_type_new(SEMA_TYPE_BOOL);
+            result = sema_type_new(TYPE_BOOL);
         break;
 
     case BINOP_LT:
@@ -938,7 +874,7 @@ static SemaType* check_binary_expr(Sema* sema, Expr* expr) {
             );
         }
 
-        result = sema_type_new(SEMA_TYPE_BOOL);
+        result = sema_type_new(TYPE_BOOL);
         break;
 
     case BINOP_AND:
@@ -952,7 +888,7 @@ static SemaType* check_binary_expr(Sema* sema, Expr* expr) {
             );
         }
 
-        result = sema_type_new(SEMA_TYPE_BOOL);
+        result = sema_type_new(TYPE_BOOL);
         break;
 
     default:
