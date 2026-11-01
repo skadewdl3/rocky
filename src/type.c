@@ -2,7 +2,7 @@
 #include <rocky/parser/nodes.h>
 #include <stdlib.h>
 
-SemaType* sema_type_new(SemaTypeKind kind) {
+SemaType* sema_type_new(TypeKind kind) {
     SemaType* type = calloc(1, sizeof(SemaType));
 
     if (type == NULL)
@@ -167,25 +167,26 @@ void sema_type_free(SemaType* type) {
 
 
 
-static SemaType* sema_type_from_primitive(TokenKind primitive) {
+static TypeKind sema_type_from_primitive(TokenKind primitive){
+
     switch (primitive) {
-    case TOKEN_TYPE_INT:
-        return sema_type_new(SEMA_TYPE_INT);
+        case TOKEN_TYPE_INT:
+            return TYPE_INT;
 
-    case TOKEN_TYPE_FLOAT:
-        return sema_type_new(SEMA_TYPE_FLOAT);
+        case TOKEN_TYPE_FLOAT:
+            return TYPE_FLOAT;
 
-    case TOKEN_TYPE_BOOL:
-        return sema_type_new(SEMA_TYPE_BOOL);
+        case TOKEN_TYPE_BOOL:
+            return TYPE_BOOL;
 
-    case TOKEN_TYPE_STRING:
-        return sema_type_new(SEMA_TYPE_STRING);
+        case TOKEN_TYPE_STRING:
+            return TYPE_STRING;
 
-    case TOKEN_TYPE_SIZE_T:
-        return sema_type_new(SEMA_TYPE_SIZE_T);
+        case TOKEN_TYPE_SIZE_T:
+            return TYPE_SIZE_T;
 
-    default:
-        return sema_type_new(SEMA_TYPE_ERROR);
+        default:
+            return TYPE_ERROR;
     }
 }
 
@@ -206,88 +207,100 @@ SemaType* sema_type_from_ast(const TypeExpr* type) {
         return NULL;
 
     switch (type->kind) {
-    case TYPE_PRIMITIVE:
-        return sema_type_from_primitive(
-            type->defi.primitive.primitive
-        );
+        case TYPE_INT:
+        case TYPE_FLOAT:
+        case TYPE_BOOL:
+        case TYPE_STRING:
+        case TYPE_SIZE_T:
+        case TYPE_VOID:
+            return sema_type_new(type->kind);
 
-    case TYPE_POINTER: {
-        SemaType* base = sema_type_from_ast(
-            type->defi.pointer.base
-        );
-
-        if (base == NULL)
-            return NULL;
-
-        SemaType* pointer = sema_type_pointer(base);
-        sema_type_free(base);
-
-        return pointer;
-    }
-
-    case TYPE_FUNC_POINTER: {
-        size_t parameter_count = count_parameters(
-            type->defi.func_pointer.params
-        );
-
-        SemaType** parameters = NULL;
-
-        if (parameter_count > 0) {
-            parameters = calloc(
-                parameter_count,
-                sizeof(SemaType*)
+        case TYPE_POINTER: {
+            SemaType* base = sema_type_from_ast(
+                type->defi.pointer.base
             );
 
-            if (parameters == NULL)
+            if (base == NULL)
                 return NULL;
+
+            SemaType* pointer = sema_type_pointer(base);
+            sema_type_free(base);
+
+            return pointer;
         }
 
-        const Param* parameter = type->defi.func_pointer.params;
+        case TYPE_FUNCTION: {
+            const Param* parameter =
+                type->defi.function.params;
 
-        for (size_t i = 0; i < parameter_count; i++) {
-            parameters[i] = sema_type_from_ast(parameter->type);
+            size_t parameter_count = 0;
 
-            if (parameters[i] == NULL) {
-                for (size_t j = 0; j < i; j++)
-                    sema_type_free(parameters[j]);
+            while (parameter != NULL) {
+                parameter_count++;
+                parameter = parameter->next;
+            }
+
+            SemaType** parameters = NULL;
+
+            if (parameter_count > 0) {
+                parameters = calloc(
+                    parameter_count,
+                    sizeof(SemaType*)
+                );
+
+                if (parameters == NULL)
+                    return NULL;
+            }
+
+            parameter = type->defi.function.params;
+
+            for (size_t i = 0; i < parameter_count; i++) {
+                parameters[i] = sema_type_from_ast(
+                    parameter->type
+                );
+
+                if (parameters[i] == NULL) {
+                    for (size_t j = 0; j < i; j++)
+                        sema_type_free(parameters[j]);
+
+                    free(parameters);
+                    return NULL;
+                }
+
+                parameter = parameter->next;
+            }
+
+            SemaType* return_type = sema_type_from_ast(
+                type->defi.function.return_type
+            );
+
+            if (return_type == NULL) {
+                for (size_t i = 0; i < parameter_count; i++)
+                    sema_type_free(parameters[i]);
 
                 free(parameters);
                 return NULL;
             }
 
-            parameter = parameter->next;
-        }
+            SemaType* function = sema_type_function(
+                (const SemaType* const*)parameters,
+                parameter_count,
+                return_type
+            );
 
-        SemaType* return_type = sema_type_from_ast(
-            type->defi.func_pointer.return_type
-        );
-
-        if (return_type == NULL) {
             for (size_t i = 0; i < parameter_count; i++)
                 sema_type_free(parameters[i]);
 
             free(parameters);
-            return NULL;
+            sema_type_free(return_type);
+
+            return function;
         }
 
-        SemaType* function = sema_type_function(
-            (const SemaType* const*)parameters,
-            parameter_count,
-            return_type
-        );
-
-        for (size_t i = 0; i < parameter_count; i++)
-            sema_type_free(parameters[i]);
-
-        free(parameters);
-        sema_type_free(return_type);
-
-        return function;
-    }
-
-    default:
-        return sema_type_new(SEMA_TYPE_ERROR);
-    }
+        case TYPE_ERROR:
+        default:
+            return sema_type_new(TYPE_ERROR);
+        }
 }
 
 
@@ -348,13 +361,13 @@ bool sema_type_is_numeric(const SemaType* type) {
            type->kind == SEMA_TYPE_FLOAT;
 }
 
-SemaTypeKind sema_type_common_numeric(
+TypeKind sema_type_common_numeric(
     const SemaType* left,
     const SemaType* right
 ) {
     if (!sema_type_is_numeric(left) ||
         !sema_type_is_numeric(right)) {
-        return SEMA_TYPE_ERROR;
+        return TYPE_ERROR;
     }
 
     /*
@@ -367,12 +380,17 @@ SemaTypeKind sema_type_common_numeric(
 
      */
 
-    if (left->kind == SEMA_TYPE_FLOAT ||
-        right->kind == SEMA_TYPE_FLOAT) {
-        return SEMA_TYPE_FLOAT;
+    if (left->kind == TYPE_FLOAT ||
+        right->kind == TYPE_FLOAT) {
+        return TYPE_FLOAT;
     }
 
-    return SEMA_TYPE_INT;
+    if (left->kind == TYPE_SIZE_T &&
+        right->kind == TYPE_SIZE_T) {
+        return TYPE_SIZE_T;
+    }
+
+    return TYPE_INT;
 }
 
 bool sema_type_assignable(
@@ -415,23 +433,23 @@ const char* sema_type_name(const SemaType* type) {
         return "<unknown>";
 
     switch (type->kind) {
-    case SEMA_TYPE_ERROR:
+    case TYPE_ERROR:
         return "<error>";
-    case SEMA_TYPE_VOID:
+    case TYPE_VOID:
         return "void";
-    case SEMA_TYPE_INT:
+    case TYPE_INT:
         return "int";
-    case SEMA_TYPE_FLOAT:
+    case TYPE_FLOAT:
         return "float";
-    case SEMA_TYPE_BOOL:
+    case TYPE_BOOL:
         return "bool";
-    case SEMA_TYPE_STRING:
+    case TYPE_STRING:
         return "string";
-    case SEMA_TYPE_SIZE_T:
+    case TYPE_SIZE_T:
         return "size_t";
-    case SEMA_TYPE_POINTER:
+    case TYPE_POINTER:
         return "pointer";
-    case SEMA_TYPE_FUNCTION:
+    case TYPE_FUNCTION:
         return "function";
     default:
         return "<unknown>";

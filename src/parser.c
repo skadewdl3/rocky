@@ -30,7 +30,7 @@ Param* alloc_param(Parser* p, Token name, TypeExpr* type) {
     return param;
 }
 
-TypeExpr* alloc_type_expr(Parser* p, TypeExprKind kind) {
+TypeExpr* alloc_type_expr(Parser* p, TypeKind kind) {
     TypeExpr* t = arena_alloc(p->arena, sizeof(TypeExpr));
     memset(t, 0, sizeof(TypeExpr));
     t->kind = kind;
@@ -358,32 +358,62 @@ Expr* parse_expr(Parser* p, int min_bp) {
 
 TypeExpr* parse_type_expr(Parser* p) {
     Token t = peek(p);
-    TypeExpr* type = NULL;
-    if (t.type == TOKEN_FUNCTION) {
 
-    } else {
-        switch (t.type) {
+    if (t.type == TOKEN_FUNCTION) {
+        
+        // function type parsing yet to be implemented
+        error(t);
+        return NULL;
+
+    } 
+    
+    TypeKind kind;
+
+    switch (t.type) {
         case TOKEN_TYPE_INT:
-        case TOKEN_TYPE_BOOL:
-        case TOKEN_TYPE_STRING:
-        case TOKEN_TYPE_SIZE_T:
-        case TOKEN_TYPE_FLOAT:
-            advance(p);
-            type = alloc_type_expr(p, TYPE_PRIMITIVE);
-            type->defi.primitive.primitive = t.type;
+            kind = TYPE_INT;
             break;
+
+        case TOKEN_TYPE_FLOAT:
+            kind = TYPE_FLOAT;
+            break;
+
+        case TOKEN_TYPE_BOOL:
+            kind = TYPE_BOOL;
+            break;
+
+        case TOKEN_TYPE_STRING:
+            kind = TYPE_STRING;
+            break;
+
+        case TOKEN_TYPE_SIZE_T:
+            kind = TYPE_SIZE_T;
+            break;
+
         default:
             error(t);
+            return NULL;
         }
-        while (peek(p).type == TOKEN_STAR) {
-            advance(p);
-            TypeExpr* ptr = alloc_type_expr(p, TYPE_POINTER);
-            ptr->defi.pointer.base = type;
-            type = ptr;
-        }
+
+    advance(p);
+
+    TypeExpr* type = alloc_type_expr(p, kind);
+
+    while (peek(p).type == TOKEN_STAR) {
+        advance(p);
+
+        TypeExpr* pointer = alloc_type_expr(
+            p,
+            TYPE_POINTER
+        );
+
+        pointer->defi.pointer.base = type;
+        type = pointer;
     }
+
     return type;
 }
+
 Stmt* parse_variable_assignment(Parser* p) {
     Token t = advance(p);
     expect(p, TOKEN_EQUAL);

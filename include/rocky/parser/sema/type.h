@@ -3,18 +3,8 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <rocky/parser/ast.h>
 
-typedef enum {
-    SEMA_TYPE_ERROR,
-    SEMA_TYPE_VOID,
-    SEMA_TYPE_INT,
-    SEMA_TYPE_FLOAT,
-    SEMA_TYPE_BOOL,
-    SEMA_TYPE_STRING,
-    SEMA_TYPE_SIZE_T,
-    SEMA_TYPE_POINTER,
-    SEMA_TYPE_FUNCTION
-} SemaTypeKind;
 
 // Conversion classification
 typedef enum {
@@ -33,7 +23,7 @@ typedef struct {
 } SemaFunctionType;
 
 struct SemaType {
-    SemaTypeKind kind;
+    TypeKind kind;
 
     union {
         struct {
@@ -45,7 +35,7 @@ struct SemaType {
 };
 
 //Constructors - returned will be released with sema_type_free().
-SemaType* sema_type_new(SemaTypeKind kind);
+SemaType* sema_type_new(TypeKind kind);
 SemaType* sema_type_pointer(const SemaType* base);
 SemaType* sema_type_function(
     const SemaType* const* parameters,
@@ -67,7 +57,7 @@ bool sema_type_assignable(
 // Numeric helpers
 bool sema_type_is_numeric(const SemaType* type);
 bool sema_type_is_integer(const SemaType* type);
-SemaTypeKind sema_type_common_numeric(
+TypeKind sema_type_common_numeric(
     const SemaType* left,
     const SemaType* right
 );

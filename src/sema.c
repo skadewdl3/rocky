@@ -13,7 +13,6 @@ static void visit_expr(Sema* sema, Expr* expr);
 static void visit_declaration(Sema* sema, Stmt* stmt);
 static SemaType* check_unary_expr(Sema* sema, Expr* expr);
 static SemaType* check_binary_expr(Sema* sema, Expr* expr);
-static SemaTypeKind sema_type_from_ast_kind(TypeKind kind);
 static SemaType* check_call_expr(Sema* sema, Expr* expr);
 static void check_condition(Sema* sema,Expr* condition,const char* statement_name);
 

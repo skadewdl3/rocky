@@ -89,30 +89,23 @@ typedef struct Stmt {
     } defi;
 } Stmt;
 
-typedef enum {
-    TYPE_PRIMITIVE,   // Eg. int/float
-    TYPE_POINTER,     // Eg. int *
-    TYPE_FUNC_POINTER // fn(int) : int
-} TypeExprKind;
-
 struct TypeExpr {
-    TypeExprKind kind;
+    TypeKind kind;
+
     union {
-        struct {
-            TokenKind primitive;
-        } primitive;
         struct {
             TypeExpr* base;
         } pointer;
+
         struct {
             Param* params;
             TypeExpr* return_type;
-        } func_pointer;
+        } function;
     } defi;
 };
 
 Param* alloc_param(Parser* p, Token name, TypeExpr* type);
 Stmt* alloc_stmt(Parser* p, StmtKind kind, Token tok);
-TypeExpr* alloc_type_expr(Parser* p, TypeExprKind kind);
+TypeExpr* alloc_type_expr(Parser* p, TypeKind kind);
 
 #endif
