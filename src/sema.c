@@ -81,15 +81,18 @@ static void check_condition(
     }
     
     if (condition_type->kind != TYPE_ERROR &&
-        condition_type->kind != TYPE_BOOL) {
+        !sema_type_can_convert_to_bool(condition_type)) {
         debug_type_error(
             &condition->token,
-            "%s condition must have type bool, got %s",
+            "%s condition must be implicitly convertible to bool, got %s",
             statement_name,
             sema_type_name(condition_type)
         );
 
         sema->errors++;
+    } else if (condition_type->kind != TYPE_ERROR) {
+        condition->needs_bool_conversion = condition_type->kind != TYPE_BOOL;
+        condition->type = TYPE_BOOL;
     }
 
     sema_type_free(condition_type);

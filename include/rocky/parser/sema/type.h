@@ -77,6 +77,13 @@ bool sema_type_can_convert(
     const SemaType* target
 );
 
+/**
+ * @brief Determines whether a type can be implicitly converted to bool.
+ * @param source Type used as a condition.
+ * @return true when source is valid in a boolean context.
+ */
+bool sema_type_can_convert_to_bool(const SemaType* source);
+
 // Useful for diagnostics.
 const char* sema_type_name(const SemaType* type);
 

@@ -427,6 +427,14 @@ bool sema_type_can_convert(
            SEMA_CONVERSION_NONE;
 }
 
+bool sema_type_can_convert_to_bool(const SemaType* source) {
+    if (source == NULL)
+        return false;
+
+    return source->kind == TYPE_BOOL ||
+           source->kind == TYPE_INT ||
+           source->kind == TYPE_SIZE_T;
+}
 
 const char* sema_type_name(const SemaType* type) {
     if (type == NULL)

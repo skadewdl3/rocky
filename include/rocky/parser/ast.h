@@ -2,6 +2,7 @@
 #define ROCKY_PARSER_AST_H
 
 #include <rocky/lexer/token.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 /* ── Types ────────────────────────────────────────────────── */
@@ -77,6 +78,7 @@ struct Expr {
     ExprKind kind;
     Token token;
     TypeKind type;
+    bool needs_bool_conversion;
 
     union {
         int64_t ival;
