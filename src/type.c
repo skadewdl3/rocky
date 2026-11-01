@@ -22,7 +22,7 @@ SemaType* sema_type_clone(const SemaType* type) {
         return NULL;
 
     switch (type->kind) {
-    case SEMA_TYPE_POINTER:
+    case TYPE_POINTER:
         copy->as.pointer.base = sema_type_clone(type->as.pointer.base);
 
         if (copy->as.pointer.base == NULL) {
@@ -31,7 +31,7 @@ SemaType* sema_type_clone(const SemaType* type) {
         }
         break;
 
-    case SEMA_TYPE_FUNCTION:
+    case TYPE_FUNCTION:
         copy->as.function.parameter_count = type->as.function.parameter_count;
 
         if (copy->as.function.parameter_count > 0) {
@@ -76,7 +76,7 @@ SemaType* sema_type_pointer(const SemaType* base) {
     if (base == NULL)
         return NULL;
 
-    SemaType* type = sema_type_new(SEMA_TYPE_POINTER);
+    SemaType* type = sema_type_new(TYPE_POINTER);
 
     if (type == NULL)
         return NULL;
@@ -102,7 +102,7 @@ SemaType* sema_type_function(
     if (parameter_count > 0 && parameters == NULL)
         return NULL;
 
-    SemaType* type = sema_type_new(SEMA_TYPE_FUNCTION);
+    SemaType* type = sema_type_new(TYPE_FUNCTION);
 
     if (type == NULL)
         return NULL;
@@ -146,11 +146,11 @@ void sema_type_free(SemaType* type) {
         return;
 
     switch (type->kind) {
-    case SEMA_TYPE_POINTER:
+    case TYPE_POINTER:
         sema_type_free(type->as.pointer.base);
         break;
 
-    case SEMA_TYPE_FUNCTION:
+    case TYPE_FUNCTION:
         for (size_t i = 0; i < type->as.function.parameter_count; i++)
             sema_type_free(type->as.function.parameters[i]);
 
@@ -312,13 +312,13 @@ bool sema_type_equal(const SemaType* left, const SemaType* right) {
         return false;
 
     switch (left->kind) {
-    case SEMA_TYPE_POINTER:
+    case TYPE_POINTER:
         return sema_type_equal(
             left->as.pointer.base,
             right->as.pointer.base
         );
 
-    case SEMA_TYPE_FUNCTION:
+    case TYPE_FUNCTION:
         if (left->as.function.parameter_count !=
             right->as.function.parameter_count) {
             return false;
@@ -349,8 +349,8 @@ bool sema_type_is_integer(const SemaType* type) {
     if (type == NULL)
         return false;
 
-    return type->kind == SEMA_TYPE_INT ||
-           type->kind == SEMA_TYPE_SIZE_T;
+    return type->kind == TYPE_INT ||
+           type->kind == TYPE_SIZE_T;
 }
 
 bool sema_type_is_numeric(const SemaType* type) {
@@ -358,7 +358,7 @@ bool sema_type_is_numeric(const SemaType* type) {
         return false;
 
     return sema_type_is_integer(type) ||
-           type->kind == SEMA_TYPE_FLOAT;
+           type->kind == TYPE_FLOAT;
 }
 
 TypeKind sema_type_common_numeric(
@@ -411,8 +411,8 @@ SemaConversion sema_type_conversion(
         return SEMA_CONVERSION_IDENTITY;
 
     // implicit widening conversion int -> float
-    if (source->kind == SEMA_TYPE_INT &&
-        target->kind == SEMA_TYPE_FLOAT) {
+    if (source->kind == TYPE_INT &&
+        target->kind == TYPE_FLOAT) {
         return SEMA_CONVERSION_INT_TO_FLOAT;
     }
 
