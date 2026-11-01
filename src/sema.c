@@ -1,4 +1,5 @@
 #include <rocky/parser/ast.h>
+#include <rocky/debug.h>
 #include <rocky/parser/nodes.h>
 #include <rocky/parser/sema/sema.h>
 #include <rocky/parser/sema/type.h>
@@ -45,13 +46,7 @@ static void report_expression_error(
     const Expr* expr,
     const char* message
 ) {
-    fprintf(
-        stderr,
-        "type error at line %d col %d: %s\n",
-        expr->token.line,
-        expr->token.column,
-        message
-    );
+    debug_type_error(&expr->token, "%s", message);
 
     sema->errors++;
 }
@@ -62,13 +57,7 @@ static void report_statement_error(
     const Stmt* stmt,
     const char* message
 ) {
-    fprintf(
-        stderr,
-        "type error at line %d col %d: %s\n",
-        stmt->token.line,
-        stmt->token.column,
-        message
-    );
+    debug_type_error(&stmt->token, "%s", message);
 
     sema->errors++;
 }
@@ -85,11 +74,7 @@ static void check_condition(
     );
 
     if (condition_type == NULL) {
-        fprintf(
-            stderr,
-            "type error: unable to determine %s condition type\n",
-            statement_name
-        );
+        debug_type_error(NULL, "unable to determine %s condition type", statement_name);
 
         sema->errors++;
         return;
@@ -97,12 +82,9 @@ static void check_condition(
     
     if (condition_type->kind != TYPE_ERROR &&
         condition_type->kind != TYPE_BOOL) {
-        fprintf(
-            stderr,
-            "type error at line %d col %d: "
-            "%s condition must have type bool, got %s\n",
-            condition->token.line,
-            condition->token.column,
+        debug_type_error(
+            &condition->token,
+            "%s condition must have type bool, got %s",
             statement_name,
             sema_type_name(condition_type)
         );
@@ -192,13 +174,9 @@ static void visit_stmt(Sema* sema, Stmt* stmt) {
                        sema->current_return_type,
                        value_type
                    )) {
-            fprintf(
-                stderr,
-                "type error at line %d col %d: "
-                "cannot return value of type %s from function "
-                "returning %s\n",
-                stmt->token.line,
-                stmt->token.column,
+            debug_type_error(
+                &stmt->token,
+                "cannot return value of type %s from function returning %s",
                 sema_type_name(value_type),
                 sema_type_name(sema->current_return_type)
             );
@@ -298,12 +276,9 @@ static void visit_stmt(Sema* sema, Stmt* stmt) {
         SemaType* target_type = NULL;
 
         if (entry == NULL) {
-            fprintf(
-                stderr,
-                "type error at line %d col %d: "
-                "variable '%.*s' is not declared\n",
-                stmt->token.line,
-                stmt->token.column,
+            debug_type_error(
+                &stmt->token,
+                "variable '%.*s' is not declared",
                 name.length,
                 name.start
             );
@@ -335,13 +310,9 @@ static void visit_stmt(Sema* sema, Stmt* stmt) {
             value_type != NULL &&
             value_type->kind != TYPE_ERROR &&
             !sema_type_assignable(target_type, value_type)) {
-            fprintf(
-                stderr,
-                "type error at line %d col %d: "
-                "cannot assign value of type %s to variable '%.*s' "
-                "of type %s\n",
-                stmt->token.line,
-                stmt->token.column,
+            debug_type_error(
+                &stmt->token,
+                "cannot assign value of type %s to variable '%.*s' of type %s",
                 sema_type_name(value_type),
                 name.length,
                 name.start,
@@ -412,12 +383,9 @@ static SemaType* check_call_expr(Sema* sema, Expr* expr) {
     );
 
     if (function == NULL) {
-        fprintf(
-            stderr,
-            "type error at line %d col %d: "
-            "function '%.*s' is not declared\n",
-            expr->token.line,
-            expr->token.column,
+        debug_type_error(
+            &expr->token,
+            "function '%.*s' is not declared",
             callee->as.ident.len,
             callee->as.ident.name
         );
@@ -440,12 +408,9 @@ static SemaType* check_call_expr(Sema* sema, Expr* expr) {
     size_t actual_count = count_expr_arguments(expr->as.call.args);
 
     if (expected_count != actual_count) {
-        fprintf(
-            stderr,
-            "type error at line %d col %d: "
-            "function '%.*s' expects %zu argument(s), got %zu\n",
-            expr->token.line,
-            expr->token.column,
+        debug_type_error(
+            &expr->token,
+            "function '%.*s' expects %zu argument(s), got %zu",
             callee->as.ident.len,
             callee->as.ident.name,
             expected_count,
@@ -476,13 +441,9 @@ static SemaType* check_call_expr(Sema* sema, Expr* expr) {
                 parameter_type,
                 argument_type
             )) {
-            fprintf(
-                stderr,
-                "type error at line %d col %d: "
-                "argument type %s is incompatible with "
-                "parameter type %s\n",
-                argument->expr->token.line,
-                argument->expr->token.column,
+            debug_type_error(
+                &argument->expr->token,
+                "argument type %s is incompatible with parameter type %s",
                 sema_type_name(argument_type),
                 sema_type_name(parameter_type)
             );
@@ -542,12 +503,9 @@ static SemaType* check_expr(Sema* sema, Expr* expr) {
         );
 
         if (entry == NULL) {
-            fprintf(
-                stderr,
-                "type error at line %d col %d: "
-                "variable '%.*s' is not declared\n",
-                expr->token.line,
-                expr->token.column,
+            debug_type_error(
+                &expr->token,
+                "variable '%.*s' is not declared",
                 expr->as.ident.len,
                 expr->as.ident.name
             );
@@ -667,13 +625,9 @@ static void visit_declaration(Sema* sema, Stmt* stmt) {
         );
         } else if (value_type->kind != TYPE_ERROR &&
                !sema_type_assignable(declared_type, value_type)) {
-        fprintf(
-            stderr,
-            "type error at line %d col %d: "
-            "cannot initialize variable '%.*s' of type %s "
-            "with a value of type %s\n",
-            stmt->token.line,
-            stmt->token.column,
+        debug_type_error(
+            &stmt->token,
+            "cannot initialize variable '%.*s' of type %s with a value of type %s",
             name.length,
             name.start,
             sema_type_name(declared_type),

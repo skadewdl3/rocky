@@ -52,6 +52,13 @@ void print_expr(const Expr* expr, int depth, int is_last, int sibling);
 const char* stmt_kind_str(StmtKind kind);
 
 /**
+ * @brief Prints a type-error diagnostic.
+ * @param token Source token, or NULL for diagnostics without a source location.
+ * @param format printf-style diagnostic format string.
+ */
+void debug_type_error(const Token* token, const char* format, ...);
+
+/**
  * @brief Prints a statement tree using ASCII connectors.
  * @param stmt Root statement to print. Statements linked through next are also printed.
  * @param depth Current depth in the recursion.

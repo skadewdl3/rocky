@@ -6,6 +6,7 @@
 
 #include <inttypes.h>
 #include <rocky/debug.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 #ifdef _WIN32
@@ -27,6 +28,22 @@ static int use_color(void) {
     return isatty(fileno(stdout));
 }
 #endif
+
+void debug_type_error(const Token* token, const char* format, ...) {
+    va_list args;
+
+    if (token != NULL) {
+        fprintf(stderr, "type error at line %d col %d: ", token->line, token->column);
+    } else {
+        fprintf(stderr, "type error: ");
+    }
+
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+
+    fputc('\n', stderr);
+}
 
 /** @copydoc token_type_str */
 const char* token_type_str(TokenKind type) {
