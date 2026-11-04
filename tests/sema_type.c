@@ -55,3 +55,12 @@ void test_different_non_numeric_types_are_not_assignable(void) {
     sema_type_free(bool_type);
     sema_type_free(string_type);
 }
+
+int main(void) {
+    UNITY_BEGIN();
+    RUN_TEST(test_int_to_float_is_allowed);
+    RUN_TEST(test_float_to_int_is_not_allowed);
+    RUN_TEST(test_same_types_are_assignable);
+    RUN_TEST(test_different_non_numeric_types_are_not_assignable);
+    return UNITY_END();
+}
