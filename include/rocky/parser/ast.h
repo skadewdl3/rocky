@@ -78,7 +78,6 @@ struct Expr {
     ExprKind kind;
     Token token;
     TypeKind type;
-    bool needs_bool_conversion;
 
     union {
         int64_t ival;

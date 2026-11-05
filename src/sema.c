@@ -91,7 +91,6 @@ static void check_condition(
 
         sema->errors++;
     } else if (condition_type->kind != TYPE_ERROR) {
-        condition->needs_bool_conversion = condition_type->kind != TYPE_BOOL;
         condition->type = TYPE_BOOL;
     }
 
