@@ -7,5 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Push CF webhook
-        run: curl -d "" ${secrets.CLOUDFLARE_WEBHOOK_URL}
+        run: |
+          curl --fail --show-error --silent \
+            -X POST \
+            "${{secrets.CLOUDFLARE_WEBHOOK_URL}}"
         
