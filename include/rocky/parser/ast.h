@@ -2,6 +2,7 @@
 #define ROCKY_PARSER_AST_H
 
 #include <rocky/lexer/token.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 /* ── Types ────────────────────────────────────────────────── */
@@ -10,7 +11,12 @@ typedef enum {
     TYPE_INT,
     TYPE_FLOAT,
     TYPE_BOOL,
+    TYPE_STRING,
+    TYPE_SIZE_T,
     TYPE_VOID,
+    TYPE_POINTER,
+    TYPE_FUNCTION,
+    TYPE_ERROR
 } TypeKind;
 
 /* ── Operators ────────────────────────────────────────────── */
@@ -56,7 +62,17 @@ typedef enum {
     EXPR_UNARY,
     EXPR_BINARY,
     EXPR_CAST,
+    EXPR_CALL
 } ExprKind;
+
+
+typedef struct ExprList ExprList;
+
+struct ExprList {
+    Expr* expr;
+    ExprList* next;
+};
+
 
 struct Expr {
     ExprKind kind;
@@ -88,6 +104,12 @@ struct Expr {
             TypeKind to;
             Expr* operand;
         } cast;
+
+        struct {
+            Expr* callee;
+            ExprList* args;
+        } call;
+
         struct {
             const char* start;
             int len;

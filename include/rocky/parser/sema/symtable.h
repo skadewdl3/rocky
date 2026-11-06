@@ -10,6 +10,7 @@ typedef struct {
     const char* name;
     int length;     // length of token
     TypeExpr* type; // from nodes.h
+    Param* params; // function metadata, type = return type, params = function parameters list
     int scope_depth;
     bool is_tombstone; // sentinel entry-true if tombstone
     bool is_function;  // placeholder for now

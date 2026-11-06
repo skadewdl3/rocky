@@ -6,6 +6,7 @@
 
 #include <inttypes.h>
 #include <rocky/debug.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 #ifdef _WIN32
@@ -27,6 +28,22 @@ static int use_color(void) {
     return isatty(fileno(stdout));
 }
 #endif
+
+void debug_type_error(const Token* token, const char* format, ...) {
+    va_list args;
+
+    if (token != NULL) {
+        fprintf(stderr, "type error at line %d col %d: ", token->line, token->column);
+    } else {
+        fprintf(stderr, "type error: ");
+    }
+
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+
+    fputc('\n', stderr);
+}
 
 /** @copydoc token_type_str */
 const char* token_type_str(TokenKind type) {
@@ -194,6 +211,10 @@ const char* datatype_str(TypeKind t) {
         return "float";
     case TYPE_BOOL:
         return "bool";
+    case TYPE_STRING:
+        return "string";
+    case TYPE_SIZE_T:
+        return "size_t";
     case TYPE_VOID:
         return "void";
     default:
@@ -300,41 +321,27 @@ static void print_type_expr(const TypeExpr* type) {
     }
 
     switch (type->kind) {
-    case TYPE_PRIMITIVE:
-        switch (type->defi.primitive.primitive) {
-        case TOKEN_TYPE_INT:
-            printf("int");
-            break;
-        case TOKEN_TYPE_FLOAT:
-            printf("float");
-            break;
-        case TOKEN_TYPE_STRING:
-            printf("string");
-            break;
-        case TOKEN_TYPE_BOOL:
-            printf("bool");
-            break;
-        case TOKEN_TYPE_SIZE_T:
-            printf("size_t");
-            break;
-        default:
-            printf("?");
-            break;
-        }
+    case TYPE_INT:
+    case TYPE_FLOAT:
+    case TYPE_BOOL:
+    case TYPE_STRING:
+    case TYPE_SIZE_T:
+    case TYPE_VOID:
+        printf("%s", datatype_str(type->kind));
         break;
     case TYPE_POINTER:
         print_type_expr(type->defi.pointer.base);
         printf("*");
         break;
-    case TYPE_FUNC_POINTER: {
+    case TYPE_FUNCTION: {
         printf("fn(");
-        for (const Param* param = type->defi.func_pointer.params; param; param = param->next) {
+        for (const Param* param = type->defi.function.params; param; param = param->next) {
             print_type_expr(param->type);
             if (param->next)
                 printf(", ");
         }
         printf("): ");
-        print_type_expr(type->defi.func_pointer.return_type);
+        print_type_expr(type->defi.function.return_type);
         break;
     }
     default:
