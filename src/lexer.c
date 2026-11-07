@@ -206,6 +206,9 @@ static TokenKind identifier_type(Lexer* lexer) {
         }
     case 't':
         return check_keyword(lexer, 1, 3, "rue", TOKEN_TRUE);
+    
+    case 'v':
+        return check_keyword(lexer, 1, 2, "ar", TOKEN_VAR);
     }
     return TOKEN_IDENTIFIER;
 }

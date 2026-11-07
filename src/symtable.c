@@ -159,7 +159,16 @@ void dump_symbol_table(SymbolTable* table) {
         if (entry->is_function) {
             printf("Function: %.*s\n", entry->length, entry->name);
         } else {
-            printf("Variable: %.*s\n", entry->length, entry->name);
+            const char *type_str = "unknown";
+            if (entry->type != NULL && entry->type->kind == TYPE_PRIMITIVE) {
+            switch (entry->type->defi.primitive.primitive) {
+                case TOKEN_TYPE_INT:   type_str = "int";   break;
+                case TOKEN_TYPE_FLOAT: type_str = "float"; break;
+                case TOKEN_TYPE_BOOL:  type_str = "bool";  break;
+                default: break;
+                }
+            }
+            printf("Variable: %.*s: %s\n", entry->length, entry->name, type_str);
         }
     }
 }

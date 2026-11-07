@@ -3,7 +3,7 @@
 #include <rocky/pass/lexer.h>
 #include <rocky/pass/parser.h>
 #include <rocky/pass/sema.h>
-
+#include <rocky/pass/typeinfer.h>
 #include <argparse/argparse.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,7 +85,10 @@ RockyCliParser* rocky_cli_parse_init(RockyCliOptions* options) {
     input_pass_register_cli_flags(parser, options);
     lexer_pass_register_cli_flags(parser, options);
     parser_pass_register_cli_flags(parser, options);
-    sema_pass_register_cli_flags(parser, options);
+    //sema_pass_register_cli_flags(parser, options);
+    sema_declare_pass_register_cli_flags(parser, options);
+    typeinfer_pass_register_cli_flags(parser, options);
+    sema_check_pass_register_cli_flags(parser, options);
 
     return parser;
 }

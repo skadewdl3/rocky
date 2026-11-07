@@ -284,6 +284,7 @@ Expr* parse_expr(Parser* p, int min_bp) {
 
     return lhs;
 }
+
 TypeExpr* parse_type_expr(Parser* p) {
     Token t = peek(p);
     TypeExpr* type = NULL;
@@ -312,6 +313,7 @@ TypeExpr* parse_type_expr(Parser* p) {
     }
     return type;
 }
+
 Stmt* parse_variable_assignment(Parser* p) {
     Token t = advance(p);
     expect(p, TOKEN_EQUAL);
@@ -324,6 +326,7 @@ Stmt* parse_variable_assignment(Parser* p) {
 
     return s;
 }
+
 Stmt* parse_variable_assignment_without_semicolon(Parser* p) {
     Token t = advance(p);
     expect(p, TOKEN_EQUAL);
@@ -335,6 +338,7 @@ Stmt* parse_variable_assignment_without_semicolon(Parser* p) {
 
     return s;
 }
+
 Stmt* parse_expr_stmt(Parser* p) {
     Token t = peek(p);
 
@@ -379,6 +383,7 @@ Stmt* parse_block(Parser* p) {
     s->defi.block_stmt.body = head;
     return s;
 }
+
 Param* parse_params(Parser* p) {
     expect(p, TOKEN_LPAREN);
     Param* head = NULL;
@@ -411,6 +416,7 @@ Param* parse_params(Parser* p) {
     expect(p, TOKEN_RPAREN);
     return head;
 }
+
 Stmt* parse_while(Parser* p) {
     Token t = advance(p);
     expect(p, TOKEN_LPAREN);
@@ -487,13 +493,30 @@ Stmt* parse_break(Parser* p) {
     Stmt* s = alloc_stmt(p, STMT_BREAK, t);
     return s;
 }
-Stmt* parse_variable_declaration(Parser* p) {
-    TypeExpr* type = parse_type_expr(p);
-    Token name = expect(p, TOKEN_IDENTIFIER);
+
+Stmt* parse_variable_declaration(Parser* p) { // added support for var
+    TypeExpr* type = NULL;
+    Token name;
+
+    if(peek(p).type == TOKEN_VAR){
+        advance(p); //consume var
+        name = expect(p, TOKEN_IDENTIFIER);
+
+        if(peek(p).type == TOKEN_COLON){ // var foo: int = expr style syntax
+            advance(p);
+            type = parse_type_expr(p);
+        }
+
+        //else type stays null and inferred later
+    }else { // original var decl syntax style
+        type = parse_type_expr(p);
+        name = expect(p, TOKEN_IDENTIFIER);
+    }
+
     expect(p, TOKEN_EQUAL);
-    Expr* expr = NULL;
-    expr = parse_expr(p, 0);
+    Expr* expr = parse_expr(p, 0);
     expect(p, TOKEN_SEMICOLON);
+
     Stmt* s = alloc_stmt(p, STMT_DECLARATION, name);
     s->defi.declaration_stmt.name = name;
     s->defi.declaration_stmt.type = type;
@@ -550,6 +573,7 @@ Stmt* parse_stmt(Parser* p) {
     case TOKEN_TYPE_STRING:
     case TOKEN_TYPE_SIZE_T:
     case TOKEN_TYPE_FLOAT:
+    case TOKEN_VAR:
         return parse_variable_declaration(p);
     default:
         return parse_expr_stmt(p);
@@ -567,9 +591,11 @@ Stmt* parse_top_level(Parser* p) {
     case TOKEN_TYPE_STRING:
     case TOKEN_TYPE_SIZE_T:
     case TOKEN_TYPE_FLOAT:
+    case TOKEN_VAR:
         return parse_variable_declaration(p);
     default:
         error(t);
+        return NULL;
     }
 }
 

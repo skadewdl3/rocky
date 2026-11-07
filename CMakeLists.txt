@@ -39,7 +39,11 @@ add_executable(rocky
   src/pass/sema.c
   src/symtable.c
   src/sema.c
+  src/typeinfer.c
   src/adt/linked_list.c
+  src/pass/sema_decl.c
+  src/pass/typeinfer.c
+  src/pass/sema_check.c
   ${ARGPARSE_SOURCES}
 )
 target_include_directories(rocky PUBLIC include)

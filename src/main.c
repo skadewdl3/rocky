@@ -14,6 +14,9 @@
 #include <rocky/pass/parser.h>
 #include <rocky/pass/sema.h>
 #include <rocky/parser/sema/sema.h>
+#include <rocky/pass/sema_decl.h>
+#include <rocky/pass/sema_check.h>
+#include <rocky/pass/typeinfer.h>
 
 int main(int argc, char** argv) {
     RockyCliOptions options;
@@ -50,7 +53,10 @@ int main(int argc, char** argv) {
     add_pass(pm, input_pass);
     add_pass(pm, lexer_pass);
     add_pass(pm, parser_pass);
-    add_pass(pm, sema_pass);
+    add_pass(pm, sema_declare_pass);
+    add_pass(pm, typeinfer_pass);
+    add_pass(pm, sema_check_pass);
+  
 
     hashmap_set(pm->context, ROCKY_CONTEXT_CLI_OPTIONS, &options);
     run_passes(pm);

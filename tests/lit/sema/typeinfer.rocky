@@ -1,0 +1,10 @@
+// RUN: %rocky %s --dump-symbol-table 2>&1 | FileCheck %s
+
+fn main(): int {
+    var x = 5;
+    var y = 3.14;
+    return 0;
+}
+
+// CHECK: Symbol Table
+// CHECK: Function: main

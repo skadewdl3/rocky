@@ -19,6 +19,7 @@ typedef enum {
 
     /*  Identifiers  */
     TOKEN_IDENTIFIER,
+    TOKEN_VAR,
     TOKEN_ELSE,
     TOKEN_IF,
     TOKEN_RETURN,
