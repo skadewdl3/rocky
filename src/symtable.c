@@ -98,6 +98,7 @@ static void adjust_capacity(SymbolTable* table, int capacity) {
         dest->name = entry->name;
         dest->length = entry->length;
         dest->type = entry->type;
+        dest->params = entry->params;
         dest->scope_depth = entry->scope_depth;
         dest->is_function = entry->is_function; // placeholder
 
@@ -105,7 +106,7 @@ static void adjust_capacity(SymbolTable* table, int capacity) {
     }
 
     free(table->symbols);
-
+       
     table->symbols = entries;
     table->capacity = capacity;
 }
@@ -132,6 +133,7 @@ bool declare_symbol(SymbolTable* table, const char* name, int length, TypeExpr* 
     entry->name = name;
     entry->length = length;
     entry->type = type;
+    entry->params = NULL;
     entry->scope_depth = table->current_depth;
     entry->is_function = false;
 
